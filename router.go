@@ -3,13 +3,15 @@ package main
 import (
 	"net/http"
 
-	"go.uber.org/zap"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
+	"gopkg.in/mgo.v2"
 )
 
 // App stores global state for routing
 type App struct {
 	config Config
+	Mongo  *mgo.Session
 	Router *mux.Router
 }
 
@@ -19,14 +21,41 @@ func Start(config Config) {
 		config: config,
 	}
 
+	var err error
+
+	app.Mongo, err = mgo.Dial(config.MongoHost)
+	if !app.CollectionExists("servers") {
+		err = app.Mongo.DB(config.MongoName).C("servers").Create(&mgo.CollectionInfo{})
+		if err != nil {
+			logger.Warn("collection create failed")
+		}
+	}
+
 	app.Router = mux.NewRouter().StrictSlash(true)
 
 	app.Router.HandleFunc("/server/{address}", app.Server).Methods("GET", "POST").Name("server")
 	app.Router.HandleFunc("/servers", app.Servers).Methods("GET").Name("servers")
 	app.Router.HandleFunc("/players/{address}", app.Players).Methods("GET").Name("players")
 
-	err := http.ListenAndServe(config.Bind, app.Router)
+	err = http.ListenAndServe(config.Bind, app.Router)
 
 	logger.Fatal("http server encountered fatal error",
 		zap.Error(err))
+}
+
+// CollectionExists checks if a collection exists in MongoDB
+func (app *App) CollectionExists(name string) bool {
+	collections, err := app.Mongo.DB(app.config.MongoName).CollectionNames()
+	if err != nil {
+		logger.Fatal("failed to get collection names",
+			zap.Error(err))
+	}
+
+	for _, collection := range collections {
+		if collection == name {
+			return true
+		}
+	}
+
+	return false
 }
