@@ -8,9 +8,9 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	cfg := loadConfig("config_test.json")
+	cfg := loadConfig(os.Getenv("TEST_CONFIG"))
 
-	logger.Info("initialising announce-backend", zap.Any("config", cfg))
+	logger.Info("initialising announce-backend testing mode", zap.Any("config", cfg))
 
 	go Start(cfg)  // start the server in a goroutine
 	ret := m.Run() // run the tests against the server

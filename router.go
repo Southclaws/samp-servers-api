@@ -24,6 +24,16 @@ func Start(config Config) {
 	var err error
 
 	app.Mongo, err = mgo.Dial(config.MongoHost)
+
+	err = app.Mongo.Login(&mgo.Credential{
+		Username: config.MongoUser,
+		Password: config.MongoPass,
+	})
+	if err != nil {
+		logger.Warn("failed to log in to mongodb",
+			zap.Error(err))
+	}
+
 	if !app.CollectionExists("servers") {
 		err = app.Mongo.DB(config.MongoName).C("servers").Create(&mgo.CollectionInfo{})
 		if err != nil {
