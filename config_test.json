@@ -1,0 +1,8 @@
+{
+    "bind": "localhost:7790",
+    "mongodb_user": "samplist",
+    "mongodb_pass": "",
+    "mongodb_host": "localhost",
+    "mongodb_port": "27017",
+    "mongodb_name": "samplist"
+}
