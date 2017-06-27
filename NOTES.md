@@ -39,7 +39,7 @@ The communication between the server and the backend RESTful API uses JSON (Java
 - Lifetime: Number of seconds to life as integer, -1 for default lifetime
 - Extended: This attribute is an object that cotains multiple attributes like for example website URL, contact email and etc.
 
-The message is contained in a HTTP POST request "/servers/<domain name or IPv4 address and port>"
+The message is contained in a HTTP POST request "/servers/{domain name or IPv4 address and port}" for example "/servers/127.0.0.1:7777"
 
 
 ### Backend RESTful API to server (Response)
@@ -73,7 +73,7 @@ This object is an element structure of an array.
 
 The communication between the user and the backend RESTful API has no body.
 
-The message is contained in a HTTP GET request "/servers/<domain name or IPv4 address and port>" for example "/servers/127.0.0.1:7777"
+The message is contained in a HTTP GET request "/servers/{domain name or IPv4 address and port}" for example "/servers/127.0.0.1:7777"
 
 
 ### Backend RESTful API to user (Server information response)
