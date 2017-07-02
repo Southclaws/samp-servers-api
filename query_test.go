@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"testing"
 )
 
@@ -24,7 +23,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 				t.Errorf("GetServerLegacyInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			log.Printf("%#v", gotServer)
+			t.Logf("%#v", gotServer)
 		})
 	}
 }
