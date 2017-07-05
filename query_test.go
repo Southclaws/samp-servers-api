@@ -23,7 +23,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 				t.Errorf("GetServerLegacyInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			t.Logf("%#v", gotServer)
+			t.Log(gotServer)
 		})
 	}
 }

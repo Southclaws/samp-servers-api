@@ -29,10 +29,10 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
-	server.PlayerList, err = lq.GetPlayers()
-	if err != nil {
-		return server, err
-	}
+	// server.PlayerList, err = lq.GetPlayers()
+	// if err != nil {
+	// 	return server, err
+	// }
 
 	err = lq.Close()
 
@@ -64,11 +64,17 @@ func (lq *LegacyQuery) sendQuery(id rune) ([]byte, error) {
 	request := new(bytes.Buffer)
 	response := make([]byte, 2048)
 
+	port := [2]byte{
+		byte(lq.addr.Port & 0xFF),
+		byte((lq.addr.Port >> 8) & 0xFF),
+	}
+
 	lq.conn.SetDeadline(time.Now().Add(3000 * time.Millisecond))
 
 	binary.Write(request, binary.LittleEndian, []byte("SAMP"))
 	binary.Write(request, binary.LittleEndian, lq.addr.IP.To4())
-	binary.Write(request, binary.LittleEndian, uint16(lq.addr.Port))
+	binary.Write(request, binary.LittleEndian, port[0])
+	binary.Write(request, binary.LittleEndian, port[1])
 	binary.Write(request, binary.LittleEndian, uint8(id))
 
 	if id == 'p' {
