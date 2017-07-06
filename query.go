@@ -102,32 +102,35 @@ func (lq *LegacyQuery) GetInfo() (server Server, err error) {
 		return server, err
 	}
 
-	var (
-		body   = bytes.NewBuffer(response)
-		strlen uint32
-		strbuf []byte
-	)
+	ptr := 11
 
-	body.Next(11)
-	binary.Read(body, binary.LittleEndian, &server.Password)
-	binary.Read(body, binary.LittleEndian, &server.Players)
-	binary.Read(body, binary.LittleEndian, &server.MaxPlayers)
+	server.Password = (response[ptr] == 1)
+	ptr++
 
-	binary.Read(body, binary.LittleEndian, &strlen)
-	strbuf = make([]byte, strlen)
-	binary.Read(body, binary.LittleEndian, &strbuf)
-	server.Hostname = string(strbuf)
+	server.Players = int(binary.LittleEndian.Uint16(response[ptr : ptr+2]))
+	ptr += 2
 
-	binary.Read(body, binary.LittleEndian, &strlen)
-	strbuf = make([]byte, strlen)
-	binary.Read(body, binary.LittleEndian, &strbuf)
-	server.Gamemode = string(strbuf)
+	server.MaxPlayers = int(binary.LittleEndian.Uint16(response[ptr : ptr+2]))
+	ptr += 2
 
-	binary.Read(body, binary.LittleEndian, &strlen)
-	if strlen > 0 {
-		strbuf = make([]byte, strlen)
-		binary.Read(body, binary.LittleEndian, &strbuf)
-		server.Language = string(strbuf)
+	hostnameLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
+	ptr += 4
+
+	server.Hostname = string(response[ptr : ptr+hostnameLen])
+	ptr += hostnameLen
+
+	gamemodeLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
+	ptr += 4
+
+	server.Gamemode = string(response[ptr : ptr+gamemodeLen])
+	ptr += gamemodeLen
+
+	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
+	ptr += 4
+
+	if languageLen > 0 {
+		server.Language = string(response[ptr : ptr+languageLen])
+		ptr += languageLen
 	} else {
 		server.Language = "-"
 	}
