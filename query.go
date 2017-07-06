@@ -29,10 +29,15 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
-	// server.PlayerList, err = lq.GetPlayers()
-	// if err != nil {
-	// 	return server, err
-	// }
+	server.Rules, err = lq.GetRules()
+	if err != nil {
+		return server, err
+	}
+
+	server.PlayerList, err = lq.GetPlayers()
+	if err != nil {
+		return server, err
+	}
 
 	err = lq.Close()
 
@@ -146,29 +151,32 @@ func (lq *LegacyQuery) GetRules() (rules map[string]string, err error) {
 		return rules, err
 	}
 
+	rules = make(map[string]string)
+
 	var (
-		body                = bytes.NewBuffer(response)
-		amount              uint16
-		rulename, rulevalue string
-		strlen              uint8
-		strbuf              []byte
+		key string
+		val string
+		len int
 	)
 
-	body.Next(11)
-	binary.Read(body, binary.LittleEndian, &amount)
+	ptr := 11
+	amount := binary.LittleEndian.Uint16(response[ptr : ptr+2])
+	ptr += 2
 
 	for i := uint16(0); i < amount; i++ {
-		binary.Read(body, binary.LittleEndian, &strlen)
-		strbuf = make([]byte, strlen)
-		binary.Read(body, binary.LittleEndian, &strbuf)
-		rulename = string(strbuf)
+		len = int(response[ptr])
+		ptr++
 
-		binary.Read(body, binary.LittleEndian, &strlen)
-		strbuf = make([]byte, strlen)
-		binary.Read(body, binary.LittleEndian, &strbuf)
-		rulevalue = string(strbuf)
+		key = string(response[ptr : ptr+len])
+		ptr += len
 
-		rules[rulename] = rulevalue
+		len = int(response[ptr])
+		ptr++
+
+		val = string(response[ptr : ptr+len])
+		ptr += len
+
+		rules[key] = val
 	}
 
 	return
@@ -181,28 +189,24 @@ func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
 		return nil, err
 	}
 
-	body := bytes.NewBuffer(response)
-
 	var (
-		count    uint16
-		nickname string
-		strlen   uint8
-		strbuf   []byte
+		count  uint16
+		length int
 	)
 
-	body.Next(11)
-	binary.Read(body, binary.LittleEndian, &count)
+	ptr := 11
+	count = binary.LittleEndian.Uint16(response[ptr : ptr+2])
+	ptr += 2
 
-	list := make([]string, count)
+	players = make([]string, count)
 
 	for i := uint16(0); i < count; i++ {
-		binary.Read(body, binary.LittleEndian, &strlen)
-		strbuf = make([]byte, strlen)
-		binary.Read(body, binary.LittleEndian, &strbuf)
-		nickname = string(strbuf)
+		length = int(response[ptr])
+		ptr++
 
-		list[i] = nickname
+		players[i] = string(response[ptr : ptr+length])
+		ptr += length
 	}
 
-	return list, nil
+	return players, nil
 }
