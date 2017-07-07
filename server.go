@@ -34,9 +34,7 @@ type Server struct {
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
 func (server *Server) Validate() (errs []error) {
-	if len(server.Address) < 1 {
-		errs = append(errs, fmt.Errorf("address is empty"))
-	}
+	errs = append(errs, ValidateAddress(server.Address)...)
 
 	if len(server.Hostname) < 1 {
 		errs = append(errs, fmt.Errorf("hostname is empty"))
@@ -56,6 +54,10 @@ func (server *Server) Validate() (errs []error) {
 // ValidateAddress validates an address field for a server and ensures it contains the correct
 // combination of host:port with either "samp://" or an empty scheme.
 func ValidateAddress(address string) (errs []error) {
+	if len(address) < 1 {
+		errs = append(errs, fmt.Errorf("address is empty"))
+	}
+
 	if !strings.Contains(address, "://") {
 		address = fmt.Sprintf("samp://%s", address)
 	}
