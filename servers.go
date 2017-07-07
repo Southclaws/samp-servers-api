@@ -27,6 +27,6 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 
 // GetServers returns a slice of Core objects
 func (app *App) GetServers(servers *[]ServerCore) (err error) {
-	err = app.db.Find(bson.M{}).All(&servers)
+	err = app.db.Find(bson.M{}).All(servers)
 	return
 }

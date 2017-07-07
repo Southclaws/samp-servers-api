@@ -54,7 +54,7 @@ func Start(config Config) {
 	app.db = app.Mongo.DB(config.MongoName).C("servers")
 
 	err = app.db.EnsureIndex(mgo.Index{
-		Key:         []string{"address"},
+		Key:         []string{"core.address"},
 		Unique:      true,
 		DropDups:    true,
 		ExpireAfter: time.Hour,
@@ -66,7 +66,7 @@ func Start(config Config) {
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
-	app.Router.HandleFunc("/server/", app.ServerSimple).
+	app.Router.HandleFunc("/server", app.ServerSimple).
 		Methods("POST").
 		Name("server")
 

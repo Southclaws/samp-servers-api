@@ -151,6 +151,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(&server)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError, err)
@@ -171,6 +172,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 		errs := server.Validate()
 		if errs != nil {
 			WriteErrors(w, http.StatusUnprocessableEntity, errs)
+			return
 		}
 
 		err = app.UpsertServer(server)
@@ -182,7 +184,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 
 // GetServer looks up a server via the address
 func (app *App) GetServer(address string, server *Server) (found bool, err error) {
-	err = app.db.Find(bson.M{"address": address}).One(server)
+	err = app.db.Find(bson.M{"core.address": address}).One(server)
 	if err == mgo.ErrNotFound {
 		found = false
 		err = nil // the caller does not need to interpret this as an "error"
@@ -197,11 +199,13 @@ func (app *App) GetServer(address string, server *Server) (found bool, err error
 
 // UpsertServer creates or updates a server object in the database.
 func (app *App) UpsertServer(server Server) (err error) {
-	info, err := app.db.Upsert(bson.M{"address": server.Core.Address}, server)
-	logger.Debug("upsert server",
-		zap.Int("matched", info.Matched),
-		zap.Int("removed", info.Removed),
-		zap.Int("updated", info.Updated),
-		zap.Any("id", info.UpsertedId))
+	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
+	if info != nil {
+		logger.Debug("upsert server",
+			zap.Int("matched", info.Matched),
+			zap.Int("removed", info.Removed),
+			zap.Int("updated", info.Updated),
+			zap.Any("id", info.UpsertedId))
+	}
 	return
 }
