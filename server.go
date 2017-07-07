@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -121,7 +120,6 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			WriteError(w, http.StatusInternalServerError, err)
 			return
 		}
-		log.Print(server)
 
 		if !found {
 			WriteError(w, http.StatusNotFound, fmt.Errorf("could not find server by address '%s'", address))

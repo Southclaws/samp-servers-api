@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -50,7 +51,18 @@ func Start(config Config) {
 				zap.Error(err))
 		}
 	}
-	app.db = app.Mongo.DB("samplist").C("servers")
+	app.db = app.Mongo.DB(config.MongoName).C("servers")
+
+	err = app.db.EnsureIndex(mgo.Index{
+		Key:         []string{"address"},
+		Unique:      true,
+		DropDups:    true,
+		ExpireAfter: time.Hour,
+	})
+	if err != nil {
+		logger.Fatal("index ensure failed",
+			zap.Error(err))
+	}
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
