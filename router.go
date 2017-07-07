@@ -66,6 +66,10 @@ func Start(config Config) {
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
+	app.Router.HandleFunc("/server/", app.ServerSimple).
+		Methods("POST").
+		Name("server")
+
 	app.Router.HandleFunc("/server/{address}", app.Server).
 		Methods("GET", "POST").
 		Name("server")

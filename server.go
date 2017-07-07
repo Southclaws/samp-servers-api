@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -88,6 +89,24 @@ func ValidateAddress(address string) (errs []error) {
 	}
 
 	return
+}
+
+// ServerSimple handles "simple" posts where the only data is the server address which is passed to
+// the QueryDaemon which handles pulling the rest of the information from the legacy query API.
+func (app *App) ServerSimple(w http.ResponseWriter, r *http.Request) {
+	raw, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	address := string(raw)
+
+	errs := ValidateAddress(address)
+	if errs != nil {
+		WriteErrors(w, http.StatusBadRequest, errs)
+		return
+	}
 }
 
 // Server handles either posting a server object or requesting a server object
