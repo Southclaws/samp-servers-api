@@ -11,8 +11,7 @@ import (
 func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("getting server list")
 
-	servers := []ServerCore{}
-	err := app.GetServers(&servers)
+	servers, err := app.GetServers()
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -26,7 +25,11 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServers returns a slice of Core objects
-func (app *App) GetServers(servers *[]ServerCore) (err error) {
-	err = app.db.Find(bson.M{}).All(servers)
+func (app *App) GetServers() (servers []ServerCore, err error) {
+	allServers := []Server{}
+	err = app.db.Find(bson.M{}).All(&allServers)
+	for i := range allServers {
+		servers = append(servers, allServers[i].Core)
+	}
 	return
 }
