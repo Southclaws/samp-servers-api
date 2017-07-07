@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"testing"
 )
 
@@ -14,7 +15,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 		wantServer Server
 		wantErr    bool
 	}{
-		{"valid", args{"95.213.255.83:7773"}, Server{}, false},
+		{"valid", args{"198.251.83.150:7777"}, Server{}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -23,7 +24,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 				t.Errorf("GetServerLegacyInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			t.Log(gotServer)
+			log.Printf("non-error result: %#v", gotServer)
 		})
 	}
 }

@@ -10,6 +10,18 @@ import (
 	"time"
 )
 
+// QueryType represents a query method from the SA:MP set: i, r, c, d, x, p
+type QueryType uint8
+
+const (
+	// Info is the 'i' packet type
+	Info QueryType = 'i'
+	// Rules is the 'r' packet type
+	Rules QueryType = 'r'
+	// Players is the 'c' packet type
+	Players QueryType = 'c'
+)
+
 // LegacyQuery stores state for old-style masterlist queries
 type LegacyQuery struct {
 	addr *net.UDPAddr
@@ -24,6 +36,7 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
+	server.Address = host
 	server, err = lq.GetInfo()
 	if err != nil {
 		return server, err
@@ -65,7 +78,8 @@ func (lq *LegacyQuery) Close() error {
 	return lq.conn.Close()
 }
 
-func (lq *LegacyQuery) sendQuery(id rune) ([]byte, error) {
+// SendQuery writes a SA:MP format query with the specified opcode, returns the raw response bytes
+func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 	request := new(bytes.Buffer)
 	response := make([]byte, 2048)
 
@@ -80,11 +94,7 @@ func (lq *LegacyQuery) sendQuery(id rune) ([]byte, error) {
 	binary.Write(request, binary.LittleEndian, lq.addr.IP.To4())
 	binary.Write(request, binary.LittleEndian, port[0])
 	binary.Write(request, binary.LittleEndian, port[1])
-	binary.Write(request, binary.LittleEndian, uint8(id))
-
-	if id == 'p' {
-		binary.Write(request, binary.LittleEndian, uint32(0))
-	}
+	binary.Write(request, binary.LittleEndian, opcode)
 
 	lq.conn.Write(request.Bytes())
 
@@ -102,7 +112,7 @@ func (lq *LegacyQuery) sendQuery(id rune) ([]byte, error) {
 
 // GetInfo returns the core server info for displaying on the browser list.
 func (lq *LegacyQuery) GetInfo() (server Server, err error) {
-	response, err := lq.sendQuery('i')
+	response, err := lq.SendQuery(Info)
 	if err != nil {
 		return server, err
 	}
@@ -146,7 +156,7 @@ func (lq *LegacyQuery) GetInfo() (server Server, err error) {
 // GetRules returns a map of rule properties from a server. The legacy query uses established keys
 // such as "Map" and "Version"
 func (lq *LegacyQuery) GetRules() (rules map[string]string, err error) {
-	response, err := lq.sendQuery('r')
+	response, err := lq.SendQuery(Rules)
 	if err != nil {
 		return rules, err
 	}
@@ -184,7 +194,7 @@ func (lq *LegacyQuery) GetRules() (rules map[string]string, err error) {
 
 // GetPlayers simply returns a slice of strings, score is rather arbitrary so it's omitted.
 func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
-	response, err := lq.sendQuery('c')
+	response, err := lq.SendQuery(Players)
 	if err != nil {
 		return nil, err
 	}
@@ -206,6 +216,7 @@ func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
 
 		players[i] = string(response[ptr : ptr+length])
 		ptr += length
+		ptr += 4 // score, unused
 	}
 
 	return players, nil
