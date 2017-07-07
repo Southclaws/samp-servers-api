@@ -1,20 +1,18 @@
 package main
 
 import (
-	"net/http"
-
 	"encoding/json"
-
 	"fmt"
-
+	"log"
+	"net/http"
 	"net/url"
-
-	"strings"
-
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // Server stores the standard SA:MP query fields as well as an additional details type that stores
@@ -26,10 +24,10 @@ type Server struct {
 	Players    int               `json:"pc"`
 	MaxPlayers int               `json:"pm"`
 	Gamemode   string            `json:"gm"`
-	Language   string            `json:"la"`
-	Password   bool              `json:"pa"`
-	Rules      map[string]string `json:"ru"`
-	PlayerList []string          `json:"pl"`
+	Language   string            `json:"la,omitempty"`
+	Password   bool              `json:"pa,omitempty"`
+	Rules      map[string]string `json:"ru,omitempty"`
+	PlayerList []string          `json:"pl,omitempty"`
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
@@ -116,9 +114,17 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		server, err := app.GetServer(address)
+		server := Server{}
+
+		found, err := app.GetServer(address, &server)
 		if err != nil {
-			WriteError(w, http.StatusNotFound, err)
+			WriteError(w, http.StatusInternalServerError, err)
+			return
+		}
+		log.Print(server)
+
+		if !found {
+			WriteError(w, http.StatusNotFound, fmt.Errorf("could not find server by address '%s'", address))
 			return
 		}
 
@@ -152,11 +158,27 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServer looks up a server via the address
-func (app *App) GetServer(address string) (server Server, err error) {
+func (app *App) GetServer(address string, server *Server) (found bool, err error) {
+	err = app.db.Find(bson.M{"address": address}).One(server)
+	if err == mgo.ErrNotFound {
+		found = false
+		err = nil // the caller does not need to interpret this as an "error"
+	} else if err != nil {
+		return
+	} else {
+		found = true
+	}
+
 	return
 }
 
 // UpsertServer creates or updates a server object in the database.
 func (app *App) UpsertServer(server Server) (err error) {
+	info, err := app.db.Upsert(bson.M{"address": server.Address}, server)
+	logger.Debug("upsert server",
+		zap.Int("matched", info.Matched),
+		zap.Int("removed", info.Removed),
+		zap.Int("updated", info.Updated),
+		zap.Any("id", info.UpsertedId))
 	return
 }
