@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -49,9 +50,17 @@ func Start(config Config) {
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
-	app.Router.HandleFunc("/server/{address}", app.Server).Methods("GET", "POST").Name("server")
-	app.Router.HandleFunc("/servers", app.Servers).Methods("GET").Name("servers")
-	app.Router.HandleFunc("/players/{address}", app.Players).Methods("GET").Name("players")
+	app.Router.HandleFunc("/server/{address}", app.Server).
+		Methods("GET", "POST").
+		Name("server")
+
+	app.Router.HandleFunc("/servers", app.Servers).
+		Methods("GET").
+		Name("servers")
+
+	app.Router.HandleFunc("/players/{address}", app.Players).
+		Methods("GET").
+		Name("players")
 
 	err = http.ListenAndServe(config.Bind, app.Router)
 
@@ -74,4 +83,26 @@ func (app *App) CollectionExists(name string) bool {
 	}
 
 	return false
+}
+
+// WriteError is a utility function for logging a request error and writing a response all in one.
+func WriteError(w http.ResponseWriter, status int, err error) {
+	log.Print(err)
+	w.WriteHeader(status)
+	_, err = w.Write([]byte(err.Error()))
+	if err != nil {
+		log.Fatalf("failed to write error to response: %v", err)
+	}
+}
+
+// WriteErrors does the same but for groups of errors
+func WriteErrors(w http.ResponseWriter, status int, errs []error) {
+	log.Print(errs)
+	w.WriteHeader(status)
+	for _, err := range errs {
+		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			log.Fatalf("failed to write error to response: %v", err)
+		}
+	}
 }
