@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -14,6 +14,7 @@ type App struct {
 	config Config
 	Mongo  *mgo.Session
 	Router *mux.Router
+	db     *mgo.Collection
 }
 
 // Start binds the routes and starts listening for requests, blocking until fatal error.
@@ -24,11 +25,12 @@ func Start(config Config) {
 
 	var err error
 
-	app.Mongo, err = mgo.Dial(config.MongoHost)
+	app.Mongo, err = mgo.Dial(fmt.Sprintf("%s:%s", config.MongoHost, config.MongoPort))
 	if err != nil {
 		logger.Fatal("failed to connect to mongodb",
 			zap.Error(err))
 	}
+	logger.Info("connected to mongodb server")
 
 	err = app.Mongo.Login(&mgo.Credential{
 		Source:   config.MongoName,
@@ -39,6 +41,7 @@ func Start(config Config) {
 		logger.Fatal("failed to log in to mongodb",
 			zap.Error(err))
 	}
+	logger.Info("logged in to mongodb server")
 
 	if !app.CollectionExists("servers") {
 		err = app.Mongo.DB(config.MongoName).C("servers").Create(&mgo.CollectionInfo{})
@@ -47,6 +50,7 @@ func Start(config Config) {
 				zap.Error(err))
 		}
 	}
+	app.db = app.Mongo.DB("samplist").C("servers")
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
@@ -87,22 +91,22 @@ func (app *App) CollectionExists(name string) bool {
 
 // WriteError is a utility function for logging a request error and writing a response all in one.
 func WriteError(w http.ResponseWriter, status int, err error) {
-	log.Print(err)
+	logger.Debug("request error", zap.Error(err))
 	w.WriteHeader(status)
 	_, err = w.Write([]byte(err.Error()))
 	if err != nil {
-		log.Fatalf("failed to write error to response: %v", err)
+		logger.Fatal("failed to write error to response", zap.Error(err))
 	}
 }
 
 // WriteErrors does the same but for groups of errors
 func WriteErrors(w http.ResponseWriter, status int, errs []error) {
-	log.Print(errs)
+	logger.Debug("request errors", zap.Errors("errors", errs))
 	w.WriteHeader(status)
 	for _, err := range errs {
 		_, err = w.Write([]byte(err.Error()))
 		if err != nil {
-			log.Fatalf("failed to write error to response: %v", err)
+			logger.Fatal("failed to write error to response", zap.Error(err))
 		}
 	}
 }
