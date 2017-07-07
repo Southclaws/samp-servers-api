@@ -15,19 +15,26 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Server stores the standard SA:MP query fields as well as an additional details type that stores
-// additional details implemented by this API and modern server browsers.
-// The json keys are short to cut down on network traffic.
+// Core stores the standard SA:MP 'info' query fields necessary for server lists. The json keys are short to cut down on
+// network traffic since these are the objects returned to a listing request which could contain hundreds of objects.
+type Core struct {
+	Address    string `json:"ip"`
+	Hostname   string `json:"hn"`
+	Players    int    `json:"pc"`
+	MaxPlayers int    `json:"pm"`
+	Gamemode   string `json:"gm"`
+	Language   string `json:"la"`
+	Password   bool   `json:"pa"`
+}
+
+// Server contains all the information associated with a game server including the core information, the standard SA:MP
+// "rules" and "players" lists as well as any additional fields to enhance the server browsing experience.
 type Server struct {
-	Address    string            `json:"ip"`
-	Hostname   string            `json:"hn"`
-	Players    int               `json:"pc"`
-	MaxPlayers int               `json:"pm"`
-	Gamemode   string            `json:"gm"`
-	Language   string            `json:"la,omitempty"`
-	Password   bool              `json:"pa,omitempty"`
-	Rules      map[string]string `json:"ru,omitempty"`
-	PlayerList []string          `json:"pl,omitempty"`
+	Core        Core              `json:"core"`
+	Rules       map[string]string `json:"ru,omitempty"`
+	PlayerList  []string          `json:"pl,omitempty"`
+	Description string            `json:"description"`
+	Banner      string            `json:"banner"`
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
@@ -113,8 +120,7 @@ func (app *App) ServerSimple(w http.ResponseWriter, r *http.Request) {
 func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 	address, ok := mux.Vars(r)["address"]
 	if !ok {
-		logger.Fatal("no address specified in request",
-			zap.String("request", r.URL.String()))
+		WriteError(w, http.StatusBadRequest, fmt.Errorf("no address specified"))
 	}
 
 	switch r.Method {
