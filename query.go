@@ -36,8 +36,8 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
-	server.Address = host
-	server, err = lq.GetInfo()
+	server.Core.Address = host
+	server.Core, err = lq.GetInfo()
 	if err != nil {
 		return server, err
 	}
@@ -111,7 +111,7 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 }
 
 // GetInfo returns the core server info for displaying on the browser list.
-func (lq *LegacyQuery) GetInfo() (server Server, err error) {
+func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	response, err := lq.SendQuery(Info)
 	if err != nil {
 		return server, err

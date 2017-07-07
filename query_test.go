@@ -18,7 +18,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotServer, err := GetServerLegacyInfo(tt.args.host)
+			_, err := GetServerLegacyInfo(tt.args.host)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetServerLegacyInfo() error = %v, wantErr %v", err, tt.wantErr)
 				return

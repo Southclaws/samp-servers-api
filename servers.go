@@ -11,7 +11,7 @@ import (
 func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("getting server list")
 
-	servers := []Core{}
+	servers := []ServerCore{}
 	err := app.GetServers(&servers)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
@@ -26,7 +26,7 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServers returns a slice of Core objects
-func (app *App) GetServers(servers *[]Core) (err error) {
+func (app *App) GetServers(servers *[]ServerCore) (err error) {
 	err = app.db.Find(bson.M{}).All(&servers)
 	return
 }
