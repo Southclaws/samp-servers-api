@@ -4,6 +4,8 @@ Backend RESTful API for the "announce" SA:MP server plugin offering a consumable
 
 *In development - subject to change*
 
+You can play with the API at: http://api.samp.southcla.ws/ - feel free to POST/GET as much as you want and submit any bugs you find, right now there's no verification and the database is wiped every now and then :)
+
 ### Important terms of agreement
 
 - Every host that announces to the backend RESTful API is a free San Andreas Multiplayer service for San Andreas Multiplayer users.
