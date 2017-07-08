@@ -4,7 +4,3 @@ machine:
     - mongodb
   environment:
     - "TEST_CONFIG": "config_test.json"
-
-dependencies:
-  pre:
-    - 
