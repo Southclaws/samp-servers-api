@@ -3,4 +3,4 @@ machine:
     - redis
     - mongodb
   environment:
-    - "TEST_CONFIG": "config_test.json"
+    - TEST_CONFIG: config_test.json
