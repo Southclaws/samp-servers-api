@@ -36,11 +36,11 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
-	server.Core.Address = host
 	server.Core, err = lq.GetInfo()
 	if err != nil {
 		return server, err
 	}
+	server.Core.Address = host
 
 	server.Rules, err = lq.GetRules()
 	if err != nil {

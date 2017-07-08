@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetServerLegacyInfo(t *testing.T) {
@@ -9,20 +11,20 @@ func TestGetServerLegacyInfo(t *testing.T) {
 		host string
 	}
 	tests := []struct {
-		name       string
-		args       args
-		wantServer Server
-		wantErr    bool
+		name    string
+		args    args
+		wantErr bool
 	}{
-		{"valid", args{"198.251.83.150:7777"}, Server{}, false},
+		{"valid", args{"198.251.83.150:7777"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := GetServerLegacyInfo(tt.args.host)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetServerLegacyInfo() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			server, err := GetServerLegacyInfo(tt.args.host)
+			assert.NoError(t, err)
+			assert.NotEmpty(t, server.Core.Address)
+			assert.NotEmpty(t, server.Core.Hostname)
+			assert.NotEmpty(t, server.Core.Gamemode)
+			assert.NotZero(t, server.Core.MaxPlayers)
 		})
 	}
 }
