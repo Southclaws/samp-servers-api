@@ -15,34 +15,41 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Server stores the standard SA:MP query fields as well as an additional details type that stores
-// additional details implemented by this API and modern server browsers.
-// The json keys are short to cut down on network traffic.
+// ServerCore stores the standard SA:MP 'info' query fields necessary for server lists. The json keys are short to cut down on
+// network traffic since these are the objects returned to a listing request which could contain hundreds of objects.
+type ServerCore struct {
+	Address    string `json:"ip"`
+	Hostname   string `json:"hn"`
+	Players    int    `json:"pc"`
+	MaxPlayers int    `json:"pm"`
+	Gamemode   string `json:"gm"`
+	Language   string `json:"la"`
+	Password   bool   `json:"pa"`
+}
+
+// Server contains all the information associated with a game server including the core information, the standard SA:MP
+// "rules" and "players" lists as well as any additional fields to enhance the server browsing experience.
 type Server struct {
-	Address    string            `json:"ip"`
-	Hostname   string            `json:"hn"`
-	Players    int               `json:"pc"`
-	MaxPlayers int               `json:"pm"`
-	Gamemode   string            `json:"gm"`
-	Language   string            `json:"la,omitempty"`
-	Password   bool              `json:"pa,omitempty"`
-	Rules      map[string]string `json:"ru,omitempty"`
-	PlayerList []string          `json:"pl,omitempty"`
+	Core        ServerCore        `json:"core"`
+	Rules       map[string]string `json:"ru,omitempty"`
+	PlayerList  []string          `json:"pl,omitempty"`
+	Description string            `json:"description"`
+	Banner      string            `json:"banner"`
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
 func (server *Server) Validate() (errs []error) {
-	errs = append(errs, ValidateAddress(server.Address)...)
+	errs = append(errs, ValidateAddress(server.Core.Address)...)
 
-	if len(server.Hostname) < 1 {
+	if len(server.Core.Hostname) < 1 {
 		errs = append(errs, fmt.Errorf("hostname is empty"))
 	}
 
-	if server.MaxPlayers == 0 {
+	if server.Core.MaxPlayers == 0 {
 		errs = append(errs, fmt.Errorf("maxplayers is empty"))
 	}
 
-	if len(server.Gamemode) < 1 {
+	if len(server.Core.Gamemode) < 1 {
 		errs = append(errs, fmt.Errorf("gamemode is empty"))
 	}
 
@@ -113,8 +120,7 @@ func (app *App) ServerSimple(w http.ResponseWriter, r *http.Request) {
 func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 	address, ok := mux.Vars(r)["address"]
 	if !ok {
-		logger.Fatal("no address specified in request",
-			zap.String("request", r.URL.String()))
+		WriteError(w, http.StatusBadRequest, fmt.Errorf("no address specified"))
 	}
 
 	switch r.Method {
@@ -132,9 +138,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		server := Server{}
-
-		found, err := app.GetServer(address, &server)
+		server, found, err := app.GetServer(address)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError, err)
 			return
@@ -145,6 +149,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(&server)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError, err)
@@ -165,6 +170,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 		errs := server.Validate()
 		if errs != nil {
 			WriteErrors(w, http.StatusUnprocessableEntity, errs)
+			return
 		}
 
 		err = app.UpsertServer(server)
@@ -175,8 +181,8 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServer looks up a server via the address
-func (app *App) GetServer(address string, server *Server) (found bool, err error) {
-	err = app.db.Find(bson.M{"address": address}).One(server)
+func (app *App) GetServer(address string) (server Server, found bool, err error) {
+	err = app.db.Find(bson.M{"core.address": address}).One(&server)
 	if err == mgo.ErrNotFound {
 		found = false
 		err = nil // the caller does not need to interpret this as an "error"
@@ -191,11 +197,13 @@ func (app *App) GetServer(address string, server *Server) (found bool, err error
 
 // UpsertServer creates or updates a server object in the database.
 func (app *App) UpsertServer(server Server) (err error) {
-	info, err := app.db.Upsert(bson.M{"address": server.Address}, server)
-	logger.Debug("upsert server",
-		zap.Int("matched", info.Matched),
-		zap.Int("removed", info.Removed),
-		zap.Int("updated", info.Updated),
-		zap.Any("id", info.UpsertedId))
+	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
+	if info != nil {
+		logger.Debug("upsert server",
+			zap.Int("matched", info.Matched),
+			zap.Int("removed", info.Removed),
+			zap.Int("updated", info.Updated),
+			zap.Any("id", info.UpsertedId))
+	}
 	return
 }

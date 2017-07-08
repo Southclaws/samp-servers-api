@@ -18,8 +18,8 @@ type App struct {
 	db     *mgo.Collection
 }
 
-// Start binds the routes and starts listening for requests, blocking until fatal error.
-func Start(config Config) {
+// Initialise sets up a database connection, binds all the routes and prepares for Start
+func Initialise(config Config) *App {
 	app := App{
 		config: config,
 	}
@@ -54,7 +54,7 @@ func Start(config Config) {
 	app.db = app.Mongo.DB(config.MongoName).C("servers")
 
 	err = app.db.EnsureIndex(mgo.Index{
-		Key:         []string{"address"},
+		Key:         []string{"core.address"},
 		Unique:      true,
 		DropDups:    true,
 		ExpireAfter: time.Hour,
@@ -66,7 +66,7 @@ func Start(config Config) {
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
-	app.Router.HandleFunc("/server/", app.ServerSimple).
+	app.Router.HandleFunc("/server", app.ServerSimple).
 		Methods("POST").
 		Name("server")
 
@@ -82,7 +82,12 @@ func Start(config Config) {
 		Methods("GET").
 		Name("players")
 
-	err = http.ListenAndServe(config.Bind, app.Router)
+	return &app
+}
+
+// Start begins listening for requests and blocks until fatal error
+func (app *App) Start() {
+	err := http.ListenAndServe(app.config.Bind, app.Router)
 
 	logger.Fatal("http server encountered fatal error",
 		zap.Error(err))

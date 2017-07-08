@@ -44,7 +44,8 @@ func main() {
 
 	logger.Info("initialising announce-backend", zap.Any("config", cfg))
 
-	Start(cfg)
+	app := Initialise(cfg)
+	app.Start()
 }
 
 func loadConfig(filename string) Config {
