@@ -138,9 +138,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		server := Server{}
-
-		found, err := app.GetServer(address, &server)
+		server, found, err := app.GetServer(address)
 		if err != nil {
 			WriteError(w, http.StatusInternalServerError, err)
 			return
@@ -183,8 +181,8 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServer looks up a server via the address
-func (app *App) GetServer(address string, server *Server) (found bool, err error) {
-	err = app.db.Find(bson.M{"core.address": address}).One(server)
+func (app *App) GetServer(address string) (server Server, found bool, err error) {
+	err = app.db.Find(bson.M{"core.address": address}).One(&server)
 	if err == mgo.ErrNotFound {
 		found = false
 		err = nil // the caller does not need to interpret this as an "error"

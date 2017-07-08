@@ -5,8 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/kr/pretty"
-
+	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v0"
 )
 
@@ -95,7 +94,7 @@ func TestApp_ServerPOST(t *testing.T) {
 				Language:   "English",
 				Password:   false,
 			},
-			Rules:       map[string]string{},
+			Rules:       map[string]string{"mapname": "San Androcalypse"},
 			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam"},
 			Description: "Scavenge and Survive is a very fun server!",
 			Banner:      "https://i.imgur.com/o13jh8h",
@@ -133,7 +132,7 @@ func TestApp_ServerGET(t *testing.T) {
 				Language:   "English",
 				Password:   false,
 			},
-			Rules:       map[string]string{},
+			Rules:       map[string]string{"mapname": "San Androcalypse"},
 			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam"},
 			Description: "Scavenge and Survive is a very fun server!",
 			Banner:      "https://i.imgur.com/o13jh8h",
@@ -143,15 +142,9 @@ func TestApp_ServerGET(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gotServer := Server{}
 			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:7790/server/%s", tt.args.address))
-			if err != nil {
-				t.Errorf("/server POST failed: %v", err)
-			}
-			if resp.StatusCode() != 200 {
-				t.Errorf("/server POST non-200: %s", resp.Status())
-			}
-			if !reflect.DeepEqual(gotServer, tt.wantServer) {
-				t.Error(pretty.Diff(gotServer, tt.wantServer))
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, 200, resp.StatusCode())
+			assert.Equal(t, tt.wantServer, gotServer)
 		})
 	}
 }
@@ -159,26 +152,45 @@ func TestApp_ServerGET(t *testing.T) {
 func TestApp_GetServer(t *testing.T) {
 	type args struct {
 		address string
-		server  *Server
 	}
 	tests := []struct {
-		name      string
-		app       *App
-		args      args
-		wantFound bool
-		wantErr   bool
+		name       string
+		args       args
+		wantServer Server
+		wantFound  bool
+		wantErr    bool
 	}{
-	// TODO: Add test cases.
+		{"valid", args{"ss.southcla.ws"}, Server{
+			Core: ServerCore{
+				Address:    "ss.southcla.ws",
+				Hostname:   "Scavenge and Survive Official",
+				Players:    3,
+				MaxPlayers: 32,
+				Gamemode:   "Scavenge & Survive by Southclaws",
+				Language:   "English",
+				Password:   false,
+			},
+			Rules:       map[string]string{"mapname": "San Androcalypse"},
+			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam"},
+			Description: "Scavenge and Survive is a very fun server!",
+			Banner:      "https://i.imgur.com/o13jh8h",
+		},
+			true,
+			false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotFound, err := tt.app.GetServer(tt.args.address, tt.args.server)
+			gotServer, gotFound, err := app.GetServer(tt.args.address)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("App.GetServer() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if !reflect.DeepEqual(gotServer, tt.wantServer) {
+				t.Errorf("App.GetServer() gotServer = %v, want %v", gotServer, tt.wantServer)
+			}
 			if gotFound != tt.wantFound {
-				t.Errorf("App.GetServer() = %v, want %v", gotFound, tt.wantFound)
+				t.Errorf("App.GetServer() gotFound = %v, want %v", gotFound, tt.wantFound)
 			}
 		})
 	}
@@ -190,15 +202,28 @@ func TestApp_UpsertServer(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
-		app     *App
 		args    args
 		wantErr bool
 	}{
-	// TODO: Add test cases.
+		{"valid", args{Server{
+			Core: ServerCore{
+				Address:    "ss.southcla.ws",
+				Hostname:   "Scavenge and Survive Official",
+				Players:    4,
+				MaxPlayers: 32,
+				Gamemode:   "Scavenge & Survive by Southclaws",
+				Language:   "English",
+				Password:   false,
+			},
+			Rules:       map[string]string{"mapname": "San Androcalypse"},
+			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
+			Description: "Scavenge and Survive is a very fun server!",
+			Banner:      "https://i.imgur.com/o13jh8h",
+		}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.app.UpsertServer(tt.args.server); (err != nil) != tt.wantErr {
+			if err := app.UpsertServer(tt.args.server); (err != nil) != tt.wantErr {
 				t.Errorf("App.UpsertServer() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
