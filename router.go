@@ -14,8 +14,9 @@ import (
 type App struct {
 	config Config
 	Mongo  *mgo.Session
-	Router *mux.Router
 	db     *mgo.Collection
+	qd     *QueryDaemon
+	Router *mux.Router
 }
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
@@ -63,6 +64,8 @@ func Initialise(config Config) *App {
 		logger.Fatal("index ensure failed",
 			zap.Error(err))
 	}
+
+	app.qd = NewQueryDaemon(&app)
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
