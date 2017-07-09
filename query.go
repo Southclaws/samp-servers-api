@@ -47,9 +47,11 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
-	server.PlayerList, err = lq.GetPlayers()
-	if err != nil {
-		return server, err
+	if server.Core.Players < 100 {
+		server.PlayerList, err = lq.GetPlayers()
+		if err != nil {
+			return server, err
+		}
 	}
 
 	err = lq.Close()
@@ -80,15 +82,17 @@ func (lq *LegacyQuery) Close() error {
 
 // SendQuery writes a SA:MP format query with the specified opcode, returns the raw response bytes
 func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
-	request := new(bytes.Buffer)
-	response := make([]byte, 2048)
+	var (
+		err      error
+		response = make([]byte, 2048)
+		request  = new(bytes.Buffer)
+		n        int
+	)
 
 	port := [2]byte{
 		byte(lq.addr.Port & 0xFF),
 		byte((lq.addr.Port >> 8) & 0xFF),
 	}
-
-	lq.conn.SetDeadline(time.Now().Add(3000 * time.Millisecond))
 
 	binary.Write(request, binary.LittleEndian, []byte("SAMP"))
 	binary.Write(request, binary.LittleEndian, lq.addr.IP.To4())
@@ -96,13 +100,29 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 	binary.Write(request, binary.LittleEndian, port[1])
 	binary.Write(request, binary.LittleEndian, opcode)
 
-	lq.conn.Write(request.Bytes())
+	waitWrite := time.After(time.Second * 1)
+	select {
+	case <-waitWrite:
+		return nil, fmt.Errorf("socket write timed out")
 
-	n, err := lq.conn.Read(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %v", err)
+	default:
+		_, err = lq.conn.Write(request.Bytes())
+		if err != nil {
+			return nil, fmt.Errorf("failed to write: %v", err)
+		}
 	}
 
+	waitRead := time.After(time.Second * 1)
+	select {
+	case <-waitRead:
+		return nil, fmt.Errorf("socket read timed out")
+
+	default:
+		n, err = lq.conn.Read(response)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read response: %v", err)
+		}
+	}
 	if n > cap(response) {
 		return nil, fmt.Errorf("read response over buffer capacity")
 	}

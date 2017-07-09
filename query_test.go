@@ -16,6 +16,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 		wantErr bool
 	}{
 		{"valid", args{"198.251.83.150:7777"}, false},
+		{"invalid", args{"18.251.83.150:80"}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
