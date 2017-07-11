@@ -2,6 +2,7 @@ package main
 
 import (
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,8 +18,8 @@ type QueryDaemon struct {
 	ToQuery  []string           // list of addresses to query periodically in a round-robin fashion
 	Lookup   map[string]int     // maps from address to ToQuery index
 	Next     int                // the next available index
-	Total    int                // total amount of addresses, because len(ToQuery) won't work
-	Index    int                // rotates through the ToQuery list of addresses on each Daemon tick
+	Total    int32              // total amount of addresses, because len(ToQuery) won't work
+	Index    int32              // rotates through the ToQuery list of addresses on each Daemon tick
 	Mutex    sync.Mutex         // locks when a new address is added or when one is being queried
 }
 
@@ -58,6 +59,11 @@ func (qd *QueryDaemon) Remove(address string) {
 	qd.InputDel <- address
 }
 
+// GetTotal returns the total in a threadsafe way
+func (qd *QueryDaemon) GetTotal() int32 {
+	return atomic.LoadInt32(&qd.Total)
+}
+
 func (qd *QueryDaemon) add(address string) {
 	_, exists := qd.Lookup[address]
 	if exists {
@@ -71,7 +77,7 @@ func (qd *QueryDaemon) add(address string) {
 
 	qd.ToQuery = append(qd.ToQuery, address)
 	qd.Lookup[address] = index
-	qd.Total++
+	atomic.AddInt32(&qd.Total, 1)
 }
 
 func (qd *QueryDaemon) remove(address string) {
@@ -87,7 +93,7 @@ func (qd *QueryDaemon) remove(address string) {
 
 	delete(qd.Lookup, address)
 	qd.ToQuery[index] = ""
-	qd.Total--
+	atomic.AddInt32(&qd.Total, -1)
 }
 
 // Daemon runs in the background and periodically queries servers in the list round-robin style
@@ -108,7 +114,7 @@ func (qd *QueryDaemon) Daemon() {
 				continue
 			}
 
-			logger.Debug("performing periodic query", zap.String("address", qd.ToQuery[qd.Index]), zap.Int("index", qd.Index))
+			logger.Debug("performing periodic query", zap.String("address", qd.ToQuery[qd.Index]), zap.Int32("index", qd.Index))
 			qd.query(qd.Index)
 			qd.Index++
 			if qd.Index >= qd.Total {
@@ -129,7 +135,7 @@ func (qd *QueryDaemon) Daemon() {
 	}
 }
 
-func (qd *QueryDaemon) query(index int) {
+func (qd *QueryDaemon) query(index int32) {
 	result := ServerWrapper{
 		Address: qd.ToQuery[index],
 	}
