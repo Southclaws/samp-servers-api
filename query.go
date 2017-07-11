@@ -24,14 +24,15 @@ const (
 
 // LegacyQuery stores state for old-style masterlist queries
 type LegacyQuery struct {
-	addr *net.UDPAddr
-	conn net.Conn
+	addr    *net.UDPAddr
+	conn    net.Conn
+	Timeout time.Duration
 }
 
 // GetServerLegacyInfo wraps a set of legacy queries and returns a new Server object with the
 // available fields populated.
 func GetServerLegacyInfo(host string) (server Server, err error) {
-	lq, err := NewLegacyQuery(host)
+	lq, err := NewLegacyQuery(host, time.Second*5)
 	if err != nil {
 		return server, err
 	}
@@ -60,7 +61,7 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 }
 
 // NewLegacyQuery creates a new legacy query handler for a server
-func NewLegacyQuery(host string) (lq *LegacyQuery, err error) {
+func NewLegacyQuery(host string, timeout time.Duration) (lq *LegacyQuery, err error) {
 	lq = new(LegacyQuery)
 	lq.addr, err = net.ResolveUDPAddr("udp", host)
 	if err != nil {
@@ -71,6 +72,8 @@ func NewLegacyQuery(host string) (lq *LegacyQuery, err error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to dial: %v", err)
 	}
+
+	lq.Timeout = timeout
 
 	return lq, nil
 }
@@ -105,7 +108,7 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 		return nil, fmt.Errorf("failed to write: %v", err)
 	}
 
-	waitRead := time.After(time.Second * 1)
+	waitRead := time.After(lq.Timeout)
 	waitResponse := make(chan []byte)
 	waitError := make(chan error)
 	go func() {

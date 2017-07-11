@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -11,6 +12,7 @@ import (
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
 // legacy query API, it then stores the results as standard Server objects, accessible via the API.
 type QueryDaemon struct {
+	ctx      context.Context
 	app      *App
 	InputAdd chan string        // input channel for addresses to add to the peroidic query
 	InputDel chan string        // input channel for addresses to remove from the periodic query
@@ -32,8 +34,9 @@ type ServerWrapper struct {
 }
 
 // NewQueryDaemon sets up the query daemon and starts the background process
-func NewQueryDaemon(app *App) *QueryDaemon {
+func NewQueryDaemon(ctx context.Context, app *App) *QueryDaemon {
 	qd := QueryDaemon{
+		ctx:      ctx,
 		app:      app,
 		InputAdd: make(chan string),
 		InputDel: make(chan string),
@@ -49,13 +52,11 @@ func NewQueryDaemon(app *App) *QueryDaemon {
 
 // Add will add a new address to the query rotation
 func (qd *QueryDaemon) Add(address string) {
-	logger.Debug("adding address to query daemon", zap.String("address", address))
 	qd.InputAdd <- address
 }
 
 // Remove will remove an address from the query rotation
 func (qd *QueryDaemon) Remove(address string) {
-	logger.Debug("removing address from query daemon", zap.String("address", address))
 	qd.InputDel <- address
 }
 
@@ -78,30 +79,40 @@ func (qd *QueryDaemon) add(address string) {
 	qd.ToQuery = append(qd.ToQuery, address)
 	qd.Lookup[address] = index
 	atomic.AddInt32(&qd.Total, 1)
+	logger.Debug("added address to query daemon",
+		zap.String("address", address),
+		zap.Int("index", index))
 }
 
 func (qd *QueryDaemon) remove(address string) {
-	logger.Debug("(internal) removing address to query daemon", zap.String("address", address))
 	index, exists := qd.Lookup[address]
 	if !exists {
 		return
 	}
 
-	if qd.Next != -1 && qd.Next > index { // if Next is valid and index is below Next
+	if qd.Next == -1 || qd.Next > index { // if Next is valid and index is below Next
 		qd.Next = index // then shift Next down to index so the next insersion goes here
 	}
 
 	delete(qd.Lookup, address)
 	qd.ToQuery[index] = ""
 	atomic.AddInt32(&qd.Total, -1)
+	logger.Debug("removed address from query daemon",
+		zap.String("address", address),
+		zap.Int("next", qd.Next),
+		zap.Int("index", index))
 }
 
 // Daemon runs in the background and periodically queries servers in the list round-robin style
 func (qd *QueryDaemon) Daemon() {
 	tick := time.NewTicker(time.Millisecond * 1000)
 	logger.Debug("starting query daemon background process")
+main:
 	for {
 		select {
+		case <-qd.ctx.Done():
+			break main
+
 		// doing the add/remove inside the for-select keeps everything in sync
 		case address := <-qd.InputAdd:
 			qd.add(address)
@@ -114,8 +125,11 @@ func (qd *QueryDaemon) Daemon() {
 				continue
 			}
 
-			logger.Debug("performing periodic query", zap.String("address", qd.ToQuery[qd.Index]), zap.Int32("index", qd.Index))
-			qd.query(qd.Index)
+			if qd.ToQuery[qd.Index] != "" {
+				logger.Debug("performing periodic query", zap.String("address", qd.ToQuery[qd.Index]), zap.Int32("index", qd.Index))
+				go qd.query(qd.ToQuery[qd.Index])
+			}
+
 			qd.Index++
 			if qd.Index >= qd.Total {
 				qd.Index = 0
@@ -123,6 +137,9 @@ func (qd *QueryDaemon) Daemon() {
 
 		case result := <-qd.Finished:
 			if result.Error != nil {
+				logger.Debug("QueryDaemon failed to query address, removing from pool",
+					zap.String("address", result.Address),
+					zap.Error(result.Error))
 				qd.Remove(result.Address)
 			} else {
 				err := qd.app.UpsertServer(result.Server)
@@ -135,12 +152,12 @@ func (qd *QueryDaemon) Daemon() {
 	}
 }
 
-func (qd *QueryDaemon) query(index int32) {
+func (qd *QueryDaemon) query(address string) {
 	result := ServerWrapper{
-		Address: qd.ToQuery[index],
+		Address: address,
 	}
 
-	server, err := GetServerLegacyInfo(qd.ToQuery[index])
+	server, err := GetServerLegacyInfo(address)
 	if err != nil {
 		result.Error = err
 	}

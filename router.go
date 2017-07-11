@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -12,6 +13,8 @@ import (
 
 // App stores global state for routing
 type App struct {
+	ctx    context.Context
+	cancel context.CancelFunc
 	config Config
 	Mongo  *mgo.Session
 	db     *mgo.Collection
@@ -24,6 +27,7 @@ func Initialise(config Config) *App {
 	app := App{
 		config: config,
 	}
+	app.ctx, app.cancel = context.WithCancel(context.Background())
 
 	var err error
 
@@ -65,7 +69,7 @@ func Initialise(config Config) *App {
 			zap.Error(err))
 	}
 
-	app.qd = NewQueryDaemon(&app)
+	app.qd = NewQueryDaemon(app.ctx, &app)
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
@@ -90,6 +94,7 @@ func Initialise(config Config) *App {
 
 // Start begins listening for requests and blocks until fatal error
 func (app *App) Start() {
+	defer app.cancel()
 	err := http.ListenAndServe(app.config.Bind, app.Router)
 
 	logger.Fatal("http server encountered fatal error",
