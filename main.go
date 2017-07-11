@@ -11,11 +11,11 @@ import (
 // Config stores app global configuration
 type Config struct {
 	Bind      string `json:"bind"`
-	MongoUser string `json:"mongodb_user"`
-	MongoPass string `json:"mongodb_pass"`
 	MongoHost string `json:"mongodb_host"`
 	MongoPort string `json:"mongodb_port"`
 	MongoName string `json:"mongodb_name"`
+	MongoUser string `json:"mongodb_user"`
+	MongoPass string `json:"mongodb_pass"`
 }
 
 var logger *zap.Logger
@@ -60,6 +60,21 @@ func loadConfig(filename string) Config {
 		file, err = os.Create(filename)
 		if err != nil {
 			logger.Fatal("failed to create default config.json",
+				zap.Error(err))
+		}
+
+		config.Bind = "localhost:7790"
+		config.MongoHost = "localhost"
+		config.MongoPort = "27017"
+		config.MongoName = "samplist"
+		config.MongoUser = "samplist"
+		config.MongoPass = "changeme"
+
+		enc := json.NewEncoder(file)
+		enc.SetIndent("", "    ")
+		enc.Encode(&config)
+		if err != nil {
+			logger.Fatal("failed to encode default config.json",
 				zap.Error(err))
 		}
 		return config

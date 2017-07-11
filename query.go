@@ -170,7 +170,7 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 
 	if languageLen > 0 {
 		server.Language = string(response[ptr : ptr+languageLen])
-		ptr += languageLen
+		// ptr += languageLen
 	} else {
 		server.Language = "-"
 	}
