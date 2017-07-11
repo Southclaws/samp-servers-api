@@ -100,31 +100,36 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 	binary.Write(request, binary.LittleEndian, port[1])
 	binary.Write(request, binary.LittleEndian, opcode)
 
-	waitWrite := time.After(time.Second * 1)
-	select {
-	case <-waitWrite:
-		return nil, fmt.Errorf("socket write timed out")
-
-	default:
-		_, err = lq.conn.Write(request.Bytes())
-		if err != nil {
-			return nil, fmt.Errorf("failed to write: %v", err)
-		}
+	_, err = lq.conn.Write(request.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("failed to write: %v", err)
 	}
 
 	waitRead := time.After(time.Second * 1)
-	select {
-	case <-waitRead:
-		return nil, fmt.Errorf("socket read timed out")
-
-	default:
+	waitResponse := make(chan []byte)
+	waitError := make(chan error)
+	go func() {
 		n, err = lq.conn.Read(response)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read response: %v", err)
+			waitError <- fmt.Errorf("failed to read response: %v", err)
 		}
-	}
-	if n > cap(response) {
-		return nil, fmt.Errorf("read response over buffer capacity")
+		if n > cap(response) {
+			waitError <- fmt.Errorf("read response over buffer capacity")
+		}
+		waitResponse <- response
+	}()
+
+waiter:
+	for {
+		select {
+		case <-waitRead:
+			return nil, fmt.Errorf("socket read timed out")
+		case err := <-waitError:
+			return nil, err
+
+		case response = <-waitResponse:
+			break waiter
+		}
 	}
 
 	return response[:n], nil
