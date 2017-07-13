@@ -73,19 +73,19 @@ func Initialise(config Config) *App {
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
-	app.Router.HandleFunc("/server", app.ServerSimple).
+	app.Router.HandleFunc("/v1/server", app.ServerSimple).
 		Methods("POST").
 		Name("server")
 
-	app.Router.HandleFunc("/server/{address}", app.Server).
+	app.Router.HandleFunc("/v1/server/{address}", app.Server).
 		Methods("GET", "POST").
 		Name("server")
 
-	app.Router.HandleFunc("/servers", app.Servers).
+	app.Router.HandleFunc("/v1/servers", app.Servers).
 		Methods("GET").
 		Name("servers")
 
-	app.Router.HandleFunc("/players/{address}", app.Players).
+	app.Router.HandleFunc("/v1/players/{address}", app.Players).
 		Methods("GET").
 		Name("players")
 
