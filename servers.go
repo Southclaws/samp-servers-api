@@ -17,13 +17,12 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(servers)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 }
 
 // GetServers returns a slice of Core objects
