@@ -73,20 +73,25 @@ func Initialise(config Config) *App {
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
+	app.Router.Headers(
+		"Content-Type", "application/json",
+		"Access-Control-Allow-Origin", "*",
+	)
+
 	app.Router.HandleFunc("/v1/server", app.ServerSimple).
-		Methods("POST").
+		Methods("OPTIONS", "POST").
 		Name("server")
 
 	app.Router.HandleFunc("/v1/server/{address}", app.Server).
-		Methods("GET", "POST").
+		Methods("OPTIONS", "GET", "POST").
 		Name("server")
 
 	app.Router.HandleFunc("/v1/servers", app.Servers).
-		Methods("GET").
+		Methods("OPTIONS", "GET").
 		Name("servers")
 
 	app.Router.HandleFunc("/v1/players/{address}", app.Players).
-		Methods("GET").
+		Methods("OPTIONS", "GET").
 		Name("players")
 
 	return &app
