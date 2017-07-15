@@ -114,6 +114,9 @@ func (app *App) ServerSimple(w http.ResponseWriter, r *http.Request) {
 		WriteErrors(w, http.StatusBadRequest, errs)
 		return
 	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 }
 
 // Server handles either posting a server object or requesting a server object

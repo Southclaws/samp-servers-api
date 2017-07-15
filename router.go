@@ -75,35 +75,19 @@ func Initialise(config Config) *App {
 
 	app.Router.HandleFunc("/v1/server", app.ServerSimple).
 		Methods("OPTIONS", "POST").
-		Name("server").
-		Headers(
-			"Content-Type", "application/json",
-			"Access-Control-Allow-Origin", "*",
-		)
+		Name("server")
 
 	app.Router.HandleFunc("/v1/server/{address}", app.Server).
 		Methods("OPTIONS", "GET", "POST").
-		Name("server").
-		Headers(
-			"Content-Type", "application/json",
-			"Access-Control-Allow-Origin", "*",
-		)
+		Name("server")
 
 	app.Router.HandleFunc("/v1/servers", app.Servers).
 		Methods("OPTIONS", "GET").
-		Name("servers").
-		Headers(
-			"Content-Type", "application/json",
-			"Access-Control-Allow-Origin", "*",
-		)
+		Name("servers")
 
 	app.Router.HandleFunc("/v1/players/{address}", app.Players).
 		Methods("OPTIONS", "GET").
-		Name("players").
-		Headers(
-			"Content-Type", "application/json",
-			"Access-Control-Allow-Origin", "*",
-		)
+		Name("players")
 
 	return &app
 }
