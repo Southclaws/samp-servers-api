@@ -17,4 +17,6 @@ func (app *App) Players(w http.ResponseWriter, r *http.Request) {
 
 	logger.Debug("getting player list for server",
 		zap.String("address", address))
+
+	w.Header().Set("Content-Type", "application/json")
 }
