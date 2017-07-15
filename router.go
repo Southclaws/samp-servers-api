@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
@@ -95,7 +96,12 @@ func Initialise(config Config) *App {
 // Start begins listening for requests and blocks until fatal error
 func (app *App) Start() {
 	defer app.cancel()
-	err := http.ListenAndServe(app.config.Bind, app.Router)
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	err := http.ListenAndServe(app.config.Bind, handlers.CORS(headersOk, originsOk, methodsOk)(app.Router))
 
 	logger.Fatal("http server encountered fatal error",
 		zap.Error(err))
