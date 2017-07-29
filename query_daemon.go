@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/Southclaws/tickerpool"
@@ -12,18 +11,9 @@ import (
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
 // legacy query API, it then stores the results as standard Server objects, accessible via the API.
 type QueryDaemon struct {
-	ctx      context.Context
-	app      *App
-	InputAdd chan string        // input channel for addresses to add to the peroidic query
-	InputDel chan string        // input channel for addresses to remove from the periodic query
-	Finished chan ServerWrapper // successfully queried servers get sent down here
-	ToQuery  []string           // list of addresses to query periodically in a round-robin fashion
-	Lookup   map[string]int     // maps from address to ToQuery index
-	Next     int                // the next available index
-	Total    int32              // total amount of addresses, because len(ToQuery) won't work
-	Index    int32              // rotates through the ToQuery list of addresses on each Daemon tick
-	Mutex    sync.Mutex         // locks when a new address is added or when one is being queried
-	tp       *tickerpool.TickerPool
+	ctx context.Context
+	app *App
+	tp  *tickerpool.TickerPool
 }
 
 // ServerWrapper wraps the Server object to add an error field for reporting errors back to the
@@ -37,13 +27,8 @@ type ServerWrapper struct {
 // NewQueryDaemon sets up the query daemon and starts the background process
 func NewQueryDaemon(ctx context.Context, app *App) *QueryDaemon {
 	qd := QueryDaemon{
-		ctx:      ctx,
-		app:      app,
-		InputAdd: make(chan string),
-		InputDel: make(chan string),
-		Finished: make(chan ServerWrapper),
-		Lookup:   make(map[string]int),
-		Next:     -1,
+		ctx: ctx,
+		app: app,
 	}
 
 	var err error
