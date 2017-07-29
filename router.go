@@ -139,7 +139,7 @@ func WriteErrors(w http.ResponseWriter, status int, errs []error) {
 	logger.Debug("request errors", zap.Errors("errors", errs))
 	w.WriteHeader(status)
 	for _, err := range errs {
-		_, err = w.Write([]byte(err.Error()))
+		_, err = w.Write([]byte(err.Error() + ", "))
 		if err != nil {
 			logger.Fatal("failed to write error to response", zap.Error(err))
 		}

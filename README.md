@@ -97,22 +97,14 @@ Example:
 You can test the endpoint by submitting a POST:
 
 ```bash
-curl -XPOST localhost:7790/server/samp.southcla.ws -d '{
+curl -XPOST localhost:7790/v1/server/samp.southcla.ws -d '{
     "ip": "samp.southcla.ws",
     "hn": "My cool server",
     "pc": 12,
     "pm": 32,
     "gm": "SS",
     "la": "English",
-    "pa": false,
-    "ru": {
-        "weburl": "http://southcla.ws"
-    },
-    "pl": [
-        "steve",
-        "bob",
-        "laura"
-    ]
+    "pa": false
 }'
 ```
 

@@ -39,7 +39,8 @@ type Server struct {
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
 func (server *Server) Validate() (errs []error) {
-	errs = append(errs, ValidateAddress(server.Core.Address)...)
+	_, addrErrs := ValidateAddress(server.Core.Address)
+	errs = append(errs, addrErrs...)
 
 	if len(server.Core.Hostname) < 1 {
 		errs = append(errs, fmt.Errorf("hostname is empty"))
@@ -57,17 +58,18 @@ func (server *Server) Validate() (errs []error) {
 }
 
 // ValidateAddress validates an address field for a server and ensures it contains the correct
-// combination of host:port with either "samp://" or an empty scheme.
-func ValidateAddress(address string) (errs []error) {
+// combination of host:port with either "samp://" or an empty scheme. returns an address with the
+// :7777 port if absent (this is the default SA:MP port) and strips the "samp:// protocol".
+func ValidateAddress(address string) (normalised string, errs []error) {
 	if len(address) < 1 {
 		errs = append(errs, fmt.Errorf("address is empty"))
 	}
 
 	if !strings.Contains(address, "://") {
-		address = fmt.Sprintf("samp://%s", address)
+		normalised = fmt.Sprintf("samp://%s", address)
 	}
 
-	u, err := url.Parse(address)
+	u, err := url.Parse(normalised)
 	if err != nil {
 		errs = append(errs, err)
 		return
@@ -77,7 +79,7 @@ func ValidateAddress(address string) (errs []error) {
 		errs = append(errs, fmt.Errorf("address contains a user:password component"))
 	}
 
-	if u.Scheme != "samp" && u.Scheme != "" {
+	if u.Scheme != "samp" {
 		errs = append(errs, fmt.Errorf("address contains invalid scheme '%s', must be either empty or 'samp://'", u.Scheme))
 	}
 
@@ -92,7 +94,12 @@ func ValidateAddress(address string) (errs []error) {
 
 		if port < 1024 || port > 49152 {
 			errs = append(errs, fmt.Errorf("port %d falls within reserved or ephemeral range", port))
+			return
 		}
+
+		normalised = u.Host
+	} else {
+		normalised = u.Host + ":7777"
 	}
 
 	return
@@ -109,11 +116,13 @@ func (app *App) ServerSimple(w http.ResponseWriter, r *http.Request) {
 
 	address := string(raw)
 
-	errs := ValidateAddress(address)
+	normalised, errs := ValidateAddress(address)
 	if errs != nil {
 		WriteErrors(w, http.StatusBadRequest, errs)
 		return
 	}
+
+	app.qd.Add(normalised)
 }
 
 // Server handles either posting a server object or requesting a server object
@@ -132,7 +141,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 			err error
 		)
 
-		errs := ValidateAddress(address)
+		_, errs := ValidateAddress(address)
 		if errs != nil {
 			WriteErrors(w, http.StatusBadRequest, errs)
 			return
@@ -200,6 +209,7 @@ func (app *App) UpsertServer(server Server) (err error) {
 	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
 	if info != nil {
 		logger.Debug("upsert server",
+			zap.String("address", server.Core.Address),
 			zap.Int("matched", info.Matched),
 			zap.Int("removed", info.Removed),
 			zap.Int("updated", info.Updated),
