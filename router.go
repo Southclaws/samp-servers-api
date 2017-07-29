@@ -70,7 +70,7 @@ func Initialise(config Config) *App {
 			zap.Error(err))
 	}
 
-	app.qd = NewQueryDaemon(app.ctx, &app)
+	app.qd = NewQueryDaemon(app.ctx, &app, time.Second*10, 5)
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 

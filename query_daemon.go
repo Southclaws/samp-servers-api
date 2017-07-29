@@ -11,28 +11,27 @@ import (
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
 // legacy query API, it then stores the results as standard Server objects, accessible via the API.
 type QueryDaemon struct {
-	ctx context.Context
-	app *App
-	tp  *tickerpool.TickerPool
-}
+	QueryInterval time.Duration // interval between query attempts
+	MaxFailed     int           // maximum number of failed query attempts before removing address
 
-// ServerWrapper wraps the Server object to add an error field for reporting errors back to the
-// Daemon so it can remove the errored address.
-type ServerWrapper struct {
-	Error   error
-	Address string
-	Server  Server
+	ctx            context.Context
+	app            *App
+	failedAttempts map[string]int
+	tp             *tickerpool.TickerPool
 }
 
 // NewQueryDaemon sets up the query daemon and starts the background process
-func NewQueryDaemon(ctx context.Context, app *App) *QueryDaemon {
+func NewQueryDaemon(ctx context.Context, app *App, interval time.Duration, maxFailed int) *QueryDaemon {
 	qd := QueryDaemon{
-		ctx: ctx,
-		app: app,
+		QueryInterval:  interval,
+		MaxFailed:      maxFailed,
+		ctx:            ctx,
+		app:            app,
+		failedAttempts: make(map[string]int),
 	}
 
 	var err error
-	qd.tp, err = tickerpool.NewTickerPool(time.Second * 5)
+	qd.tp, err = tickerpool.NewTickerPool(interval)
 	if err != nil {
 		logger.Fatal("failed to create new ticker pool",
 			zap.Error(err))
@@ -41,15 +40,27 @@ func NewQueryDaemon(ctx context.Context, app *App) *QueryDaemon {
 	return &qd
 }
 
-// Add will add a new address to the query rotation
+// Add will add a new address to the TickerPool and query it every
 func (qd *QueryDaemon) Add(address string) {
 	qd.tp.Add(address, func() {
 		server, err := GetServerLegacyInfo(address)
 		if err != nil {
-			logger.Debug("QueryDaemon failed to query address, removing from pool",
-				zap.String("address", address),
-				zap.Error(err))
-			qd.Remove(address)
+			attempts, ok := qd.failedAttempts[address]
+			if ok {
+				if attempts > qd.MaxFailed {
+					qd.failedAttempts[address] = attempts + 1
+					qd.Remove(address)
+
+					logger.Debug("failed query too many times",
+						zap.String("address", address),
+						zap.Error(err))
+				} else {
+					logger.Debug("failed query",
+						zap.String("address", address))
+				}
+			} else {
+				qd.failedAttempts[address] = 1
+			}
 		} else {
 			err = qd.app.UpsertServer(server)
 			if err != nil {
@@ -62,5 +73,7 @@ func (qd *QueryDaemon) Add(address string) {
 
 // Remove will remove an address from the query rotation
 func (qd *QueryDaemon) Remove(address string) {
+	delete(qd.failedAttempts, address)
 	qd.tp.Remove(address)
+	// qd.app.RemoveServer(address)
 }
