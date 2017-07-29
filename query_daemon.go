@@ -43,10 +43,11 @@ func NewQueryDaemon(ctx context.Context, app *App, interval time.Duration, maxFa
 // Add will add a new address to the TickerPool and query it every
 func (qd *QueryDaemon) Add(address string) {
 	qd.tp.Add(address, func() {
+		attempts, hasFailed := qd.failedAttempts[address]
+
 		server, err := GetServerLegacyInfo(address)
 		if err != nil {
-			attempts, ok := qd.failedAttempts[address]
-			if ok {
+			if hasFailed {
 				if attempts > qd.MaxFailed {
 					qd.failedAttempts[address] = attempts + 1
 					qd.Remove(address)
@@ -62,6 +63,14 @@ func (qd *QueryDaemon) Add(address string) {
 				qd.failedAttempts[address] = 1
 			}
 		} else {
+			if hasFailed {
+				if attempts <= 1 {
+					delete(qd.failedAttempts, address)
+				} else {
+					qd.failedAttempts[address]--
+				}
+			}
+
 			err = qd.app.UpsertServer(server)
 			if err != nil {
 				logger.Warn("QueryDaemon failed to upsert",
