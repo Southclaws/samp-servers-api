@@ -48,14 +48,14 @@ func (qd *QueryDaemon) Add(address string) {
 		server, err := GetServerLegacyInfo(address)
 		if err != nil {
 			if hasFailed {
-				if attempts > qd.MaxFailed {
-					qd.failedAttempts[address] = attempts + 1
+				if qd.failedAttempts[address] > qd.MaxFailed {
 					qd.Remove(address)
 
 					logger.Debug("failed query too many times",
 						zap.String("address", address),
 						zap.Error(err))
 				} else {
+					qd.failedAttempts[address] = attempts + 1
 					logger.Debug("failed query",
 						zap.String("address", address))
 				}
