@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // App stores global state for routing
@@ -70,7 +71,13 @@ func Initialise(config Config) *App {
 			zap.Error(err))
 	}
 
-	app.qd = NewQueryDaemon(app.ctx, &app, time.Second*10, 5)
+	addresses, err := app.LoadAllAddresses()
+	if err != nil {
+		logger.Fatal("failed to load current addresses for query daemon",
+			zap.Error(err))
+	}
+
+	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*10, 5)
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
@@ -122,6 +129,19 @@ func (app *App) CollectionExists(name string) bool {
 	}
 
 	return false
+}
+
+// LoadAllAddresses loads all addresses from the database as a slice of strings for synchronisation
+// with the QueryDaemon.
+func (app *App) LoadAllAddresses() (result []string, err error) {
+	allServers := []Server{}
+	err = app.db.Find(bson.M{}).All(&allServers)
+	if err == nil {
+		for i := range allServers {
+			result = append(result, allServers[i].Core.Address)
+		}
+	}
+	return
 }
 
 // WriteError is a utility function for logging a request error and writing a response all in one.

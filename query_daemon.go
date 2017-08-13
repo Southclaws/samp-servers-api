@@ -21,7 +21,7 @@ type QueryDaemon struct {
 }
 
 // NewQueryDaemon sets up the query daemon and starts the background process
-func NewQueryDaemon(ctx context.Context, app *App, interval time.Duration, maxFailed int) *QueryDaemon {
+func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval time.Duration, maxFailed int) *QueryDaemon {
 	qd := QueryDaemon{
 		QueryInterval:  interval,
 		MaxFailed:      maxFailed,
@@ -35,6 +35,10 @@ func NewQueryDaemon(ctx context.Context, app *App, interval time.Duration, maxFa
 	if err != nil {
 		logger.Fatal("failed to create new ticker pool",
 			zap.Error(err))
+	}
+
+	for _, address := range initial {
+		qd.Add(address)
 	}
 
 	return &qd
@@ -82,7 +86,15 @@ func (qd *QueryDaemon) Add(address string) {
 
 // Remove will remove an address from the query rotation
 func (qd *QueryDaemon) Remove(address string) {
-	delete(qd.failedAttempts, address)
-	qd.tp.Remove(address)
-	// qd.app.RemoveServer(address)
+	if qd.tp.Exists(address) {
+		delete(qd.failedAttempts, address)
+		qd.tp.Remove(address)
+
+		err := qd.app.RemoveServer(address)
+		if err != nil {
+			logger.Warn("failed to remove server",
+				zap.String("address", address),
+				zap.Error(err))
+		}
+	}
 }

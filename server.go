@@ -214,6 +214,13 @@ func (app *App) UpsertServer(server Server) (err error) {
 			zap.Int("removed", info.Removed),
 			zap.Int("updated", info.Updated),
 			zap.Any("id", info.UpsertedId))
+
+		app.qd.Add(server.Core.Address)
 	}
 	return
+}
+
+// RemoveServer deletes a server from the database
+func (app *App) RemoveServer(address string) (err error) {
+	return app.db.Remove(bson.M{"core.address": address})
 }

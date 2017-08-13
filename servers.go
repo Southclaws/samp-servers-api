@@ -29,8 +29,10 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 func (app *App) GetServers() (servers []ServerCore, err error) {
 	allServers := []Server{}
 	err = app.db.Find(bson.M{}).All(&allServers)
-	for i := range allServers {
-		servers = append(servers, allServers[i].Core)
+	if err == nil {
+		for i := range allServers {
+			servers = append(servers, allServers[i].Core)
+		}
 	}
 	return
 }
