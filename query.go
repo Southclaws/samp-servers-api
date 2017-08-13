@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 // QueryType represents a query method from the SA:MP set: i, r, c, d, x, p
@@ -33,6 +35,14 @@ type LegacyQuery struct {
 // available fields populated.
 func GetServerLegacyInfo(host string) (server Server, err error) {
 	lq, err := NewLegacyQuery(host, time.Second*5)
+	defer func() {
+		err := lq.Close()
+		if err != nil {
+			logger.Fatal("failed to close legacy query handler",
+				zap.String("host", host),
+				zap.Error(err))
+		}
+	}()
 	if err != nil {
 		return server, err
 	}
@@ -54,8 +64,6 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 			return server, err
 		}
 	}
-
-	err = lq.Close()
 
 	return server, err
 }
