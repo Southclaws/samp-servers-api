@@ -53,7 +53,7 @@ func (qd *QueryDaemon) Add(address string) {
 		if err != nil {
 			if hasFailed {
 				if qd.failedAttempts[address] > qd.MaxFailed {
-					qd.Remove(address)
+					// qd.Remove(address)
 
 					logger.Debug("failed query too many times",
 						zap.String("address", address),
@@ -61,7 +61,8 @@ func (qd *QueryDaemon) Add(address string) {
 				} else {
 					qd.failedAttempts[address] = attempts + 1
 					logger.Debug("failed query",
-						zap.String("address", address))
+						zap.String("address", address),
+						zap.Error(err))
 				}
 			} else {
 				qd.failedAttempts[address] = 1
