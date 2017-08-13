@@ -51,21 +51,27 @@ func (qd *QueryDaemon) Add(address string) {
 
 		server, err := GetServerLegacyInfo(address)
 		if err != nil {
-			if hasFailed {
-				if qd.failedAttempts[address] > qd.MaxFailed {
-					// qd.Remove(address)
+			if err.Error() == "socket read timed out" {
+				if hasFailed {
+					if qd.failedAttempts[address] > qd.MaxFailed {
+						qd.Remove(address)
 
-					logger.Debug("failed query too many times",
-						zap.String("address", address),
-						zap.Error(err))
+						logger.Debug("failed query too many times",
+							zap.String("address", address),
+							zap.Error(err))
+					} else {
+						qd.failedAttempts[address] = attempts + 1
+						logger.Debug("failed query",
+							zap.String("address", address),
+							zap.Error(err))
+					}
 				} else {
-					qd.failedAttempts[address] = attempts + 1
-					logger.Debug("failed query",
-						zap.String("address", address),
-						zap.Error(err))
+					qd.failedAttempts[address] = 1
 				}
 			} else {
-				qd.failedAttempts[address] = 1
+				logger.Warn("failed query but not a timeout",
+					zap.String("address", address),
+					zap.Error(err))
 			}
 		} else {
 			if hasFailed {
