@@ -166,13 +166,26 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case "POST":
+		from := strings.Split(r.RemoteAddr, ":")[0]
+		addressIP := strings.Split(address, ":")[0]
+		if from != addressIP {
+			WriteError(w, http.StatusBadRequest, fmt.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
+			return
+		}
+
 		logger.Debug("posting server",
-			zap.String("address", address))
+			zap.String("address", address),
+			zap.String("from", from))
 
 		server := Server{}
 		err := json.NewDecoder(r.Body).Decode(&server)
 		if err != nil {
 			WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
+		if server.Core.Address != address {
+			WriteError(w, http.StatusBadRequest, fmt.Errorf("route address '%v' does not match payload address '%s'", address, server.Core.Address))
 			return
 		}
 
