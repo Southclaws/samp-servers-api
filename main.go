@@ -10,12 +10,14 @@ import (
 
 // Config stores app global configuration
 type Config struct {
-	Bind      string `json:"bind"`
-	MongoHost string `json:"mongodb_host"`
-	MongoPort string `json:"mongodb_port"`
-	MongoName string `json:"mongodb_name"`
-	MongoUser string `json:"mongodb_user"`
-	MongoPass string `json:"mongodb_pass"`
+	Bind           string `json:"bind"`
+	MongoHost      string `json:"mongodb_host"`
+	MongoPort      string `json:"mongodb_port"`
+	MongoName      string `json:"mongodb_name"`
+	MongoUser      string `json:"mongodb_user"`
+	MongoPass      string `json:"mongodb_pass"`
+	QueryInterval  int    `json:"query_interval"`
+	MaxFailedQuery int    `json:"max_failed_query"`
 }
 
 var logger *zap.Logger
@@ -69,6 +71,8 @@ func loadConfig(filename string) Config {
 		config.MongoName = "samplist"
 		config.MongoUser = "samplist"
 		config.MongoPass = "changeme"
+		config.QueryInterval = 60
+		config.MaxFailedQuery = 10
 
 		enc := json.NewEncoder(file)
 		enc.SetIndent("", "    ")

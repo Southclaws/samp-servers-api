@@ -4,5 +4,7 @@
     "mongodb_pass": "",
     "mongodb_host": "localhost",
     "mongodb_port": "27017",
-    "mongodb_name": "samplist"
+    "mongodb_name": "samplist",
+    "query_interval": 60,
+    "max_failed_query": 10
 }

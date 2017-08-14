@@ -75,11 +75,7 @@ func (qd *QueryDaemon) Add(address string) {
 			}
 		} else {
 			if hasFailed {
-				if attempts <= 1 {
-					delete(qd.failedAttempts, address)
-				} else {
-					qd.failedAttempts[address]--
-				}
+				delete(qd.failedAttempts, address)
 			}
 
 			err = qd.app.UpsertServer(server)
