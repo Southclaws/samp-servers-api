@@ -3,11 +3,14 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
 )
 
 const (
+	PAGE_SIZE    = 50
 	SORT_ASC     = "asc"
 	SORT_DESC    = "desc"
 	BY_PLAYERS   = "player"
@@ -22,29 +25,52 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 
 	var (
 		err    error
+		page   = r.URL.Query().Get("page")
 		sort   = r.URL.Query().Get("sort")
 		by     = r.URL.Query().Get("by")
 		filter = r.URL.Query().Get("filter")
 	)
 
-	servers, err := app.GetServers(sort, by, filter)
+	servers, err := app.GetServers(page, sort, by, filter)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, err)
+		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(servers)
 	if err != nil {
-		WriteError(w, http.StatusInternalServerError, err)
+		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to encode response"))
 		return
 	}
 }
 
 // GetServers returns a slice of Core objects
-func (app *App) GetServers(offset, limit int, sort, by, filter string) (servers []ServerCore, err error) {
+func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore, err error) {
 	selected := []Server{}
 	query := bson.M{}
+
+	pageNum, err := strconv.Atoi(page)
+	if err != nil {
+		err = errors.Errorf("invalid 'page' argument '%s'", page)
+		return
+	}
+
+	switch sort {
+	case SORT_ASC, SORT_DESC:
+		fallthrough
+	default:
+		err = errors.Errorf("invalid 'sort' argument '%s'", sort)
+		return
+	}
+
+	switch by {
+	case BY_PLAYERS:
+		sort = "core.pc"
+	default:
+		err = errors.Errorf("invalid 'by' argument '%s'", by)
+		return
+	}
 
 	switch filter {
 	case FILTER_PASS:
@@ -53,16 +79,12 @@ func (app *App) GetServers(offset, limit int, sort, by, filter string) (servers 
 		query["core.pc"] = bson.M{"$gt": 0}
 	case FILTER_FULL:
 		query["$where"] = "this.core.pc < this.core.pm"
-	}
-
-	switch sort {
-	case BY_PLAYERS:
-		sort = "core.pc"
 	default:
-		sort = ""
+		err = errors.Errorf("invalid 'filter' argument '%s'", by)
+		return
 	}
 
-	err = app.db.Find(query).Sort(sort).Skip(offset).Limit(limit).All(selected)
+	err = app.db.Find(query).Sort(sort).Skip(pageNum * PAGE_SIZE).Limit(PAGE_SIZE).All(selected)
 	if err == nil {
 		for i := range selected {
 			servers = append(servers, selected[i].Core)
