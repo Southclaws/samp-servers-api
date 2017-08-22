@@ -48,7 +48,6 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 // GetServers returns a slice of Core objects
 func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore, err error) {
 	selected := []Server{}
-	query := bson.M{}
 
 	pageNum, err := strconv.Atoi(page)
 	if err != nil {
@@ -56,35 +55,44 @@ func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore,
 		return
 	}
 
-	switch sort {
-	case SORT_ASC, SORT_DESC:
-		fallthrough
-	default:
-		err = errors.Errorf("invalid 'sort' argument '%s'", sort)
-		return
+	if sort != "" {
+		switch sort {
+		case SORT_ASC, SORT_DESC:
+			break
+		default:
+			err = errors.Errorf("invalid 'sort' argument '%s'", sort)
+			return
+		}
 	}
 
-	switch by {
-	case BY_PLAYERS:
-		sort = "core.pc"
-	default:
-		err = errors.Errorf("invalid 'by' argument '%s'", by)
-		return
+	if by != "" {
+		switch by {
+		case BY_PLAYERS:
+			by = "core.pc"
+		default:
+			err = errors.Errorf("invalid 'by' argument '%s'", by)
+			return
+		}
 	}
 
-	switch filter {
-	case FILTER_PASS:
-		query["core.pa"] = false
-	case FILTER_EMPTY:
-		query["core.pc"] = bson.M{"$gt": 0}
-	case FILTER_FULL:
-		query["$where"] = "this.core.pc < this.core.pm"
-	default:
-		err = errors.Errorf("invalid 'filter' argument '%s'", by)
-		return
+	var query bson.M
+	if filter == "" {
+		query = bson.M{}
+	} else {
+		switch filter {
+		case FILTER_PASS:
+			query = bson.M{"core.pa": false}
+		case FILTER_EMPTY:
+			query = bson.M{"core.pc": bson.M{"$gt": 0}}
+		case FILTER_FULL:
+			query = bson.M{"$where": "this.core.pc < this.core.pm"}
+		default:
+			err = errors.Errorf("invalid 'filter' argument '%s'", by)
+			return
+		}
 	}
 
-	err = app.db.Find(query).Sort(sort).Skip(pageNum * PAGE_SIZE).Limit(PAGE_SIZE).All(selected)
+	err = app.db.Find(query).Sort(by).Skip(pageNum * PAGE_SIZE).Limit(PAGE_SIZE).All(selected)
 	if err == nil {
 		for i := range selected {
 			servers = append(servers, selected[i].Core)
