@@ -51,8 +51,8 @@ func Initialise(config Config) *App {
 	}
 	logger.Info("logged in to mongodb server")
 
-	if !app.CollectionExists("servers") {
-		err = app.Mongo.DB(config.MongoName).C("servers").Create(&mgo.CollectionInfo{})
+	if !app.CollectionExists(config.MongoCollection) {
+		err = app.Mongo.DB(config.MongoName).C(config.MongoCollection).Create(&mgo.CollectionInfo{})
 		if err != nil {
 			logger.Fatal("collection create failed",
 				zap.Error(err))

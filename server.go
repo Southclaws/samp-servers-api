@@ -67,6 +67,8 @@ func ValidateAddress(address string) (normalised string, errs []error) {
 
 	if !strings.Contains(address, "://") {
 		normalised = fmt.Sprintf("samp://%s", address)
+	} else {
+		normalised = address
 	}
 
 	u, err := url.Parse(normalised)
@@ -167,10 +169,13 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 
 	case "POST":
 		from := strings.Split(r.RemoteAddr, ":")[0]
-		addressIP := strings.Split(address, ":")[0]
-		if from != addressIP {
-			WriteError(w, http.StatusBadRequest, fmt.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
-			return
+
+		if app.config.VerifyByHost {
+			addressIP := strings.Split(address, ":")[0]
+			if from != addressIP {
+				WriteError(w, http.StatusBadRequest, fmt.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
+				return
+			}
 		}
 
 		logger.Debug("posting server",

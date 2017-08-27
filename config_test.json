@@ -5,6 +5,8 @@
     "mongodb_host": "localhost",
     "mongodb_port": "27017",
     "mongodb_name": "samplist",
+    "mongodb_collection": "servers_test",
     "query_interval": 60,
-    "max_failed_query": 10
+    "max_failed_query": 10,
+    "verify_by_host": false
 }

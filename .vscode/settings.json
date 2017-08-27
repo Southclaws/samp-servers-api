@@ -2,5 +2,10 @@
 {
     "go.testEnvVars": {
         "TEST_CONFIG": "config.json"
-    }
+    },
+    "go.testFlags": [
+        "-v",
+        "-race",
+        "-cover"
+    ]
 }

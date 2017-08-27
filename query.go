@@ -35,6 +35,9 @@ type LegacyQuery struct {
 // available fields populated.
 func GetServerLegacyInfo(host string) (server Server, err error) {
 	lq, err := NewLegacyQuery(host, time.Second*5)
+	if err != nil {
+		return server, err
+	}
 	defer func() {
 		err := lq.Close()
 		if err != nil {
@@ -43,9 +46,6 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 				zap.Error(err))
 		}
 	}()
-	if err != nil {
-		return server, err
-	}
 
 	server.Core, err = lq.GetInfo()
 	if err != nil {

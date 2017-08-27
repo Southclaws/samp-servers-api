@@ -55,7 +55,9 @@ func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore,
 		return
 	}
 
-	if sort != "" {
+	if sort == "" {
+		sort = SORT_ASC
+	} else {
 		switch sort {
 		case SORT_ASC, SORT_DESC:
 			break
@@ -65,7 +67,9 @@ func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore,
 		}
 	}
 
-	if by != "" {
+	if by == "" {
+		by = "core.pc"
+	} else {
 		switch by {
 		case BY_PLAYERS:
 			by = "core.pc"
@@ -92,7 +96,7 @@ func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore,
 		}
 	}
 
-	err = app.db.Find(query).Sort(by).Skip(pageNum * PAGE_SIZE).Limit(PAGE_SIZE).All(selected)
+	err = app.db.Find(query).Sort(by).Skip(pageNum * PAGE_SIZE).Limit(PAGE_SIZE).All(&selected)
 	if err == nil {
 		for i := range selected {
 			servers = append(servers, selected[i].Core)

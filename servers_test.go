@@ -13,7 +13,7 @@ func TestApp_GetServers(t *testing.T) {
 	}
 
 	expected := []ServerCore{
-		{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
+		{"127.0.0.1", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
 	}
 
 	assert.ObjectsAreEqual(expected, servers)

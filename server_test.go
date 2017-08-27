@@ -65,7 +65,7 @@ func TestApp_ServerSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(true).R().SetBody(tt.args.address).Post("http://localhost:7790/server")
+			resp, err := resty.SetDebug(true).R().SetBody(tt.args.address).Post("http://localhost:7790/v1/server")
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
@@ -89,26 +89,26 @@ func TestApp_ServerPOST(t *testing.T) {
 			Core: ServerCore{
 				Address:    "ss.southcla.ws",
 				Hostname:   "Scavenge and Survive Official",
-				Players:    3,
+				Players:    4,
 				MaxPlayers: 32,
 				Gamemode:   "Scavenge & Survive by Southclaws",
 				Language:   "English",
 				Password:   false,
 			},
 			Rules:       map[string]string{"mapname": "San Androcalypse"},
-			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam"},
+			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
 			Description: "Scavenge and Survive is a very fun server!",
 			Banner:      "https://i.imgur.com/o13jh8h",
 		}}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(true).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:7790/server/%s", tt.args.address))
+			resp, err := resty.SetDebug(true).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:7790/v1/server/%s", tt.args.address))
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
 			if resp.StatusCode() != 200 {
-				t.Errorf("/server POST non-200: %s", resp.Status())
+				t.Errorf("/server POST non-200: %s, %s", resp.Status(), string(resp.Body()))
 			}
 		})
 	}
@@ -127,14 +127,14 @@ func TestApp_ServerGET(t *testing.T) {
 			Core: ServerCore{
 				Address:    "ss.southcla.ws",
 				Hostname:   "Scavenge and Survive Official",
-				Players:    3,
+				Players:    4,
 				MaxPlayers: 32,
 				Gamemode:   "Scavenge & Survive by Southclaws",
 				Language:   "English",
 				Password:   false,
 			},
 			Rules:       map[string]string{"mapname": "San Androcalypse"},
-			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam"},
+			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
 			Description: "Scavenge and Survive is a very fun server!",
 			Banner:      "https://i.imgur.com/o13jh8h",
 		}},
@@ -142,7 +142,7 @@ func TestApp_ServerGET(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotServer := Server{}
-			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:7790/server/%s", tt.args.address))
+			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:7790/v1/server/%s", tt.args.address))
 			assert.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode())
 			assert.Equal(t, tt.wantServer, gotServer)
@@ -161,21 +161,22 @@ func TestApp_GetServer(t *testing.T) {
 		wantFound  bool
 		wantErr    bool
 	}{
-		{"valid", args{"ss.southcla.ws"}, Server{
-			Core: ServerCore{
-				Address:    "ss.southcla.ws",
-				Hostname:   "Scavenge and Survive Official",
-				Players:    3,
-				MaxPlayers: 32,
-				Gamemode:   "Scavenge & Survive by Southclaws",
-				Language:   "English",
-				Password:   false,
+		{"valid", args{"ss.southcla.ws"},
+			Server{
+				Core: ServerCore{
+					Address:    "ss.southcla.ws",
+					Hostname:   "Scavenge and Survive Official",
+					Players:    4,
+					MaxPlayers: 32,
+					Gamemode:   "Scavenge & Survive by Southclaws",
+					Language:   "English",
+					Password:   false,
+				},
+				Rules:       map[string]string{"mapname": "San Androcalypse"},
+				PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
+				Description: "Scavenge and Survive is a very fun server!",
+				Banner:      "https://i.imgur.com/o13jh8h",
 			},
-			Rules:       map[string]string{"mapname": "San Androcalypse"},
-			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam"},
-			Description: "Scavenge and Survive is a very fun server!",
-			Banner:      "https://i.imgur.com/o13jh8h",
-		},
 			true,
 			false,
 		},
@@ -183,16 +184,9 @@ func TestApp_GetServer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotServer, gotFound, err := app.GetServer(tt.args.address)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("App.GetServer() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotServer, tt.wantServer) {
-				t.Errorf("App.GetServer() gotServer = %v, want %v", gotServer, tt.wantServer)
-			}
-			if gotFound != tt.wantFound {
-				t.Errorf("App.GetServer() gotFound = %v, want %v", gotFound, tt.wantFound)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantServer, gotServer)
+			assert.Equal(t, tt.wantFound, gotFound)
 		})
 	}
 }
