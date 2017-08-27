@@ -97,6 +97,10 @@ func Initialise(config Config) *App {
 		Methods("OPTIONS", "GET").
 		Name("players")
 
+	app.Router.HandleFunc("/v1/stats", app.Statistics).
+		Methods("OPTIONS", "GET").
+		Name("stats")
+
 	return &app
 }
 
