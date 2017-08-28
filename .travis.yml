@@ -1,0 +1,4 @@
+services: mongodb
+
+env:
+  - TEST_CONFIG: config_test.json
