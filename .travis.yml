@@ -7,4 +7,4 @@ services: mongodb
 
 env:
   - TEST_CONFIG: config_test.json
-  - TRAVIS: 1
+    TRAVIS: 1
