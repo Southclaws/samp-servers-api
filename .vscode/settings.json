@@ -1,7 +1,7 @@
 // Place your settings in this file to overwrite default and user settings.
 {
     "go.testEnvVars": {
-        "TEST_CONFIG": "config.json"
+        "TEST_CONFIG": "config_test.json"
     },
     "go.testFlags": [
         "-v",

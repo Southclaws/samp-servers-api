@@ -40,17 +40,18 @@ func Initialise(config Config) *App {
 	}
 	logger.Info("connected to mongodb server")
 
-	err = app.Mongo.Login(&mgo.Credential{
-		Source:   config.MongoName,
-		Username: config.MongoUser,
-		Password: config.MongoPass,
-	})
-	if err != nil {
-		logger.Fatal("failed to log in to mongodb",
-			zap.Error(err))
+	if config.MongoPass != "" {
+		err = app.Mongo.Login(&mgo.Credential{
+			Source:   config.MongoName,
+			Username: config.MongoUser,
+			Password: config.MongoPass,
+		})
+		if err != nil {
+			logger.Fatal("failed to log in to mongodb",
+				zap.Error(err))
+		}
+		logger.Info("logged in to mongodb server")
 	}
-	logger.Info("logged in to mongodb server")
-
 	if !app.CollectionExists(config.MongoCollection) {
 		err = app.Mongo.DB(config.MongoName).C(config.MongoCollection).Create(&mgo.CollectionInfo{})
 		if err != nil {
