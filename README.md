@@ -1,6 +1,6 @@
 # announce-backend
 
-[![Travis](https://img.shields.io/travis/Southclaws/announce-backend.svg)](https://travis-ci.org/Southclaws/announce-backend)
+[![Travis](https://img.shields.io/travis/Southclaws/announce-backend.svg)](https://travis-ci.org/Southclaws/announce-backend)[![Coverage](http://gocover.io/_badge/github.com/Southclaws/announce-backend)](http://gocover.io/github.com/Southclaws/announce-backend)
 
 A SA:MP server listing API service. Anyone can POST a game server address which is added to a periodically queried queue and up-to-date information is provided as a JSON API.
 
