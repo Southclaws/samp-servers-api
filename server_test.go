@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v0"
 )
@@ -35,20 +36,22 @@ func TestValidateAddress(t *testing.T) {
 		name     string
 		args     args
 		wanrAddr string
-		wantErrs []error
+		wantErrs []string
 	}{
 		{"valid", args{"192.168.1.2"}, "samp://192.168.1.2:7777", nil},
 		{"valid.port", args{"192.168.1.2:7777"}, "samp://192.168.1.2:7777", nil},
 		{"valid.scheme", args{"samp://192.168.1.2"}, "samp://192.168.1.2:7777", nil},
-		{"invalid.empty", args{""}, "", []error{fmt.Errorf("address is empty")}},
-		{"invalid.port", args{"192.168.1.2:port"}, "", []error{fmt.Errorf("invalid port 'port' specified")}},
-		{"invalid.scheme", args{"http://192.168.1.2"}, "", []error{fmt.Errorf("address contains invalid scheme 'http', must be either empty or 'samp://'")}},
-		{"invalid.user", args{"user:pass@192.168.1.2"}, "", []error{fmt.Errorf("address contains a user:password component")}},
+		{"invalid.empty", args{""}, "", []string{"address is empty"}},
+		{"invalid.port", args{"192.168.1.2:port"}, "", []string{"invalid port 'port' specified"}},
+		{"invalid.scheme", args{"http://192.168.1.2"}, "", []string{"address contains invalid scheme 'http', must be either empty or 'samp://'"}},
+		{"invalid.user", args{"user:pass@192.168.1.2"}, "", []string{"address contains a user:password component"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, gotErrs := ValidateAddress(tt.args.address); !reflect.DeepEqual(gotErrs, tt.wantErrs) {
-				t.Errorf("ValidateAddress() = %v, want %v", gotErrs, tt.wantErrs)
+			_, gotErrs := ValidateAddress(tt.args.address)
+
+			for i := range gotErrs {
+				assert.Equal(t, errors.Cause(gotErrs[i]).Error(), tt.wantErrs[i])
 			}
 		})
 	}

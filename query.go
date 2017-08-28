@@ -5,9 +5,10 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"net"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"go.uber.org/zap"
 )
@@ -73,12 +74,12 @@ func NewLegacyQuery(host string, timeout time.Duration) (lq *LegacyQuery, err er
 	lq = new(LegacyQuery)
 	lq.addr, err = net.ResolveUDPAddr("udp", host)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve: %v", err)
+		return nil, errors.Wrap(err, "failed to resolve")
 	}
 
 	lq.conn, err = net.DialUDP("udp", nil, lq.addr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial: %v", err)
+		return nil, errors.Wrap(err, "failed to dial")
 	}
 
 	lq.Timeout = timeout
@@ -113,7 +114,7 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 
 	_, err = lq.conn.Write(request.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("failed to write: %v", err)
+		return nil, errors.Wrap(err, "failed to write")
 	}
 
 	waitRead := time.After(lq.Timeout)
@@ -122,10 +123,10 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 	go func() {
 		n, err = lq.conn.Read(response)
 		if err != nil {
-			waitError <- fmt.Errorf("failed to read response: %v", err)
+			waitError <- errors.Wrap(err, "failed to read response")
 		}
 		if n > cap(response) {
-			waitError <- fmt.Errorf("read response over buffer capacity")
+			waitError <- errors.New("read response over buffer capacity")
 		}
 		waitResponse <- response
 	}()
@@ -134,7 +135,7 @@ waiter:
 	for {
 		select {
 		case <-waitRead:
-			return nil, fmt.Errorf("socket read timed out")
+			return nil, errors.New("socket read timed out")
 		case err := <-waitError:
 			return nil, err
 
