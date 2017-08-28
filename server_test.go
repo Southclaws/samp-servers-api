@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v0"
@@ -65,7 +66,7 @@ func TestApp_ServerSimple(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(true).R().SetBody(tt.args.address).Post("http://localhost:7790/v1/server")
+			resp, err := resty.SetDebug(true).R().SetBody(tt.args.address).Post("http://localhost:7790/v2/server")
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
@@ -74,6 +75,8 @@ func TestApp_ServerSimple(t *testing.T) {
 			}
 		})
 	}
+
+	time.Sleep(time.Second)
 }
 
 func TestApp_ServerPOST(t *testing.T) {
@@ -85,25 +88,79 @@ func TestApp_ServerPOST(t *testing.T) {
 		name string
 		args args
 	}{
-		{"valid", args{"ss.southcla.ws", Server{
-			Core: ServerCore{
-				Address:    "ss.southcla.ws",
-				Hostname:   "Scavenge and Survive Official",
-				Players:    4,
-				MaxPlayers: 32,
-				Gamemode:   "Scavenge & Survive by Southclaws",
-				Language:   "English",
-				Password:   false,
-			},
-			Rules:       map[string]string{"mapname": "San Androcalypse"},
-			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
-			Description: "Scavenge and Survive is a very fun server!",
-			Banner:      "https://i.imgur.com/o13jh8h",
-		}}},
+		{
+			"valid 1",
+			args{"ss.southcla.ws", Server{
+				Core: ServerCore{
+					Address:    "ss.southcla.ws",
+					Hostname:   "Scavenge and Survive Official",
+					Players:    4,
+					MaxPlayers: 32,
+					Gamemode:   "Scavenge & Survive by Southclaws",
+					Language:   "English",
+					Password:   false,
+				},
+				Rules:       map[string]string{"mapname": "San Androcalypse"},
+				PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
+				Description: "Scavenge and Survive is a very fun server!",
+				Banner:      "https://i.imgur.com/o13jh8h",
+			}},
+		},
+		{
+			"valid 2",
+			args{"s2.example.com", Server{
+				Core: ServerCore{
+					Address:    "s2.example.com",
+					Hostname:   "test server 2",
+					Players:    0,
+					MaxPlayers: 100,
+					Gamemode:   "Grand Larceny",
+					Language:   "English",
+					Password:   false,
+				},
+				Rules:       map[string]string{"mapname": "Los Santos"},
+				PlayerList:  []string{},
+				Description: "Test gamemode!",
+			}},
+		},
+		{
+			"valid 3",
+			args{"s3.example.com", Server{
+				Core: ServerCore{
+					Address:    "s3.example.com",
+					Hostname:   "test server 3",
+					Players:    948,
+					MaxPlayers: 1000,
+					Gamemode:   "Grand Larceny",
+					Language:   "English",
+					Password:   false,
+				},
+				Rules:       map[string]string{"mapname": "San Fierro"},
+				PlayerList:  []string{},
+				Description: "Best gamemode!",
+			}},
+		},
+		{
+			"valid 4",
+			args{"s4.example.com", Server{
+				Core: ServerCore{
+					Address:    "s4.example.com",
+					Hostname:   "test server 4",
+					Players:    50,
+					MaxPlayers: 50,
+					Gamemode:   "rivershell",
+					Language:   "Polish",
+					Password:   true,
+				},
+				Rules:       map[string]string{"mapname": "rivershell"},
+				PlayerList:  []string{},
+				Description: "Rivershell 4 ever",
+			}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(true).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:7790/v1/server/%s", tt.args.address))
+			resp, err := resty.SetDebug(true).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:7790/v2/server/%s", tt.args.address))
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
@@ -112,6 +169,8 @@ func TestApp_ServerPOST(t *testing.T) {
 			}
 		})
 	}
+
+	time.Sleep(time.Second)
 }
 
 func TestApp_ServerGET(t *testing.T) {
@@ -142,7 +201,7 @@ func TestApp_ServerGET(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotServer := Server{}
-			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:7790/v1/server/%s", tt.args.address))
+			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:7790/v2/server/%s", tt.args.address))
 			assert.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode())
 			assert.Equal(t, tt.wantServer, gotServer)
