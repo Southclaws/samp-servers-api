@@ -1,3 +1,8 @@
+language: go
+
+go:
+  - 1.x
+
 services: mongodb
 
 env:
