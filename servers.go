@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
@@ -28,7 +29,7 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 		page   = r.URL.Query().Get("page")
 		sort   = r.URL.Query().Get("sort")
 		by     = r.URL.Query().Get("by")
-		filter = r.URL.Query().Get("filter")
+		filter = strings.SplitN(r.URL.Query().Get("filter"), ",", 3)
 	)
 
 	servers, err := app.GetServers(page, sort, by, filter)
@@ -46,7 +47,7 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServers returns a slice of Core objects
-func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore, err error) {
+func (app *App) GetServers(page, sort, by string, filters []string) (servers []ServerCore, err error) {
 	selected := []Server{}
 
 	pageNum, err := strconv.Atoi(page)
@@ -90,19 +91,18 @@ func (app *App) GetServers(page, sort, by, filter string) (servers []ServerCore,
 		}
 	}
 
-	var query bson.M
-	if filter == "" {
-		query = bson.M{}
-	} else {
+	query := bson.M{}
+
+	for _, filter := range filters {
 		switch filter {
 		case FILTER_PASS:
-			query = bson.M{"core.password": false}
+			query["core.password"] = false
 		case FILTER_EMPTY:
-			query = bson.M{"core.players": bson.M{"$gt": 0}}
+			query["core.players"] = bson.M{"$gt": 0}
 		case FILTER_FULL:
-			query = bson.M{"$where": "this.core.players < this.core.maxplayers"}
+			query["$where"] = "this.core.players < this.core.maxplayers"
 		default:
-			err = errors.Errorf("invalid 'filter' argument '%s'", by)
+			err = errors.Errorf("invalid 'filter' argument '%s'", filter)
 			return
 		}
 	}

@@ -11,7 +11,7 @@ func TestApp_GetServers(t *testing.T) {
 		page   string
 		sort   string
 		by     string
-		filter string
+		filter []string
 	}
 	tests := []struct {
 		name        string
@@ -21,7 +21,7 @@ func TestApp_GetServers(t *testing.T) {
 	}{
 		{
 			"v no sort",
-			args{"1", "", "", ""},
+			args{"1", "", "", []string{}},
 			[]ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true},
@@ -32,7 +32,7 @@ func TestApp_GetServers(t *testing.T) {
 		},
 		{
 			"v desc",
-			args{"1", "asc", "", ""},
+			args{"1", "asc", "", []string{}},
 			[]ServerCore{
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
@@ -43,7 +43,7 @@ func TestApp_GetServers(t *testing.T) {
 		},
 		{
 			"v pass",
-			args{"1", "", "", "password"},
+			args{"1", "", "", []string{"password"}},
 			[]ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
@@ -53,7 +53,7 @@ func TestApp_GetServers(t *testing.T) {
 		},
 		{
 			"v empty",
-			args{"1", "", "", "empty"},
+			args{"1", "", "", []string{"empty"}},
 			[]ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true},
@@ -63,11 +63,39 @@ func TestApp_GetServers(t *testing.T) {
 		},
 		{
 			"v full",
-			args{"1", "", "", "full"},
+			args{"1", "", "", []string{"full"}},
 			[]ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false},
+			},
+			false,
+		},
+		{
+			"v pass empty",
+			args{"1", "", "", []string{"password", "empty"}},
+			[]ServerCore{
+				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
+				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
+			},
+			false,
+		},
+		{
+			"v pass full",
+			args{"1", "", "", []string{"password", "full"}},
+			[]ServerCore{
+				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
+				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
+				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false},
+			},
+			false,
+		},
+		{
+			"v empty full",
+			args{"1", "", "", []string{"empty", "full"}},
+			[]ServerCore{
+				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
+				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
 			},
 			false,
 		},
