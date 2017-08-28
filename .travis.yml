@@ -6,5 +6,4 @@ go:
 services: mongodb
 
 env:
-  - TEST_CONFIG: config_test.json
-    TRAVIS: 1
+  - TEST_CONFIG=config_test.json TRAVIS=1
