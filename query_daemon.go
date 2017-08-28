@@ -6,6 +6,7 @@ import (
 
 	"github.com/Southclaws/tickerpool"
 	"go.uber.org/zap"
+	"golang.org/x/sync/syncmap"
 )
 
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
@@ -16,7 +17,7 @@ type QueryDaemon struct {
 
 	ctx            context.Context
 	app            *App
-	failedAttempts map[string]int
+	failedAttempts *syncmap.Map
 	tp             *tickerpool.TickerPool
 }
 
@@ -27,7 +28,7 @@ func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval ti
 		MaxFailed:      maxFailed,
 		ctx:            ctx,
 		app:            app,
-		failedAttempts: make(map[string]int),
+		failedAttempts: &syncmap.Map{},
 	}
 
 	var err error
@@ -47,26 +48,27 @@ func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval ti
 // Add will add a new address to the TickerPool and query it every
 func (qd *QueryDaemon) Add(address string) {
 	qd.tp.Add(address, func() {
-		attempts, hasFailed := qd.failedAttempts[address]
+		tmp, hasFailed := qd.failedAttempts.Load(address)
+		attempts, _ := tmp.(int)
 
 		server, err := GetServerLegacyInfo(address)
 		if err != nil {
 			if err.Error() == "socket read timed out" {
 				if hasFailed {
-					if qd.failedAttempts[address] > qd.MaxFailed {
+					if attempts > qd.MaxFailed {
 						qd.Remove(address)
 
 						logger.Debug("failed query too many times",
 							zap.String("address", address),
 							zap.Error(err))
 					} else {
-						qd.failedAttempts[address] = attempts + 1
+						attempts = attempts + 1
 						logger.Debug("failed query",
 							zap.String("address", address),
 							zap.Error(err))
 					}
 				} else {
-					qd.failedAttempts[address] = 1
+					qd.failedAttempts.Store(address, 1)
 				}
 			} else {
 				logger.Warn("failed query but not a timeout",
@@ -75,7 +77,7 @@ func (qd *QueryDaemon) Add(address string) {
 			}
 		} else {
 			if hasFailed {
-				delete(qd.failedAttempts, address)
+				qd.failedAttempts.Delete(address)
 			}
 
 			err = qd.app.UpsertServer(server)
@@ -90,7 +92,7 @@ func (qd *QueryDaemon) Add(address string) {
 // Remove will remove an address from the query rotation
 func (qd *QueryDaemon) Remove(address string) {
 	if qd.tp.Exists(address) {
-		delete(qd.failedAttempts, address)
+		qd.failedAttempts.Delete(address)
 		qd.tp.Remove(address)
 
 		err := qd.app.RemoveServer(address)
