@@ -91,7 +91,7 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 		}
 	}
 
-	query := bson.M{}
+	query := bson.M{"active": true}
 
 	for _, filter := range filters {
 		switch filter {

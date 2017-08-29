@@ -36,6 +36,7 @@ type Server struct {
 	PlayerList  []string          `json:"pl,omitempty"`
 	Description string            `json:"description"`
 	Banner      string            `json:"banner"`
+	active      bool
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
@@ -210,7 +211,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 
 // GetServer looks up a server via the address
 func (app *App) GetServer(address string) (server Server, found bool, err error) {
-	err = app.db.Find(bson.M{"core.address": address}).One(&server)
+	err = app.db.Find(bson.M{"core.address": address, "active": true}).One(&server)
 	if err == mgo.ErrNotFound {
 		found = false
 		err = nil // the caller does not need to interpret this as an "error"
@@ -223,10 +224,15 @@ func (app *App) GetServer(address string) (server Server, found bool, err error)
 	return
 }
 
-// UpsertServer creates or updates a server object in the database.
+// UpsertServer creates or updates a server object in the database, implicitly sets `active` to true
 func (app *App) UpsertServer(server Server) (err error) {
+	server.active = true
 	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
-	if info != nil {
+	if err != nil {
+		logger.Error("upsert server failed",
+			zap.String("address", server.Core.Address))
+
+	} else if info != nil {
 		logger.Debug("upsert server",
 			zap.String("address", server.Core.Address),
 			zap.Int("matched", info.Matched),
@@ -235,6 +241,24 @@ func (app *App) UpsertServer(server Server) (err error) {
 			zap.Any("id", info.UpsertedId))
 
 		app.qd.Add(server.Core.Address)
+	}
+
+	return
+}
+
+// MarkInactive marks a server as inactive by setting the `active` field to false
+func (app *App) MarkInactive(address string) (err error) {
+	info, err := app.db.Upsert(bson.M{"core.address": address}, Server{active: false})
+	if err != nil {
+		logger.Error("upsert inactive server failed",
+			zap.String("address", address))
+	} else if info != nil {
+		logger.Debug("upsert inactive server",
+			zap.String("address", address),
+			zap.Int("matched", info.Matched),
+			zap.Int("removed", info.Removed),
+			zap.Int("updated", info.Updated),
+			zap.Any("id", info.UpsertedId))
 	}
 	return
 }
