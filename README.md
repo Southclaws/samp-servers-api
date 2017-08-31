@@ -88,7 +88,8 @@ Owners can define a `description` to help sell their server with more informatio
         "SuperGamerxD"
     ],
     "description": "",
-    "banner": ""
+    "banner": "",
+    "active": true
 }
 ```
 
