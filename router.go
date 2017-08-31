@@ -78,7 +78,7 @@ func Initialise(config Config) *App {
 			zap.Error(err))
 	}
 
-	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery)
+	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, GetServerLegacyInfo)
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 

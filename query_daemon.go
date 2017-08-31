@@ -12,8 +12,9 @@ import (
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
 // legacy query API, it then stores the results as standard Server objects, accessible via the API.
 type QueryDaemon struct {
-	QueryInterval time.Duration // interval between query attempts
-	MaxFailed     int           // maximum number of failed query attempts before removing address
+	QueryInterval time.Duration                // interval between query attempts
+	MaxFailed     int                          // maximum number of failed query attempts before removing address
+	QueryFunction func(string) (Server, error) //  function to use to query servers
 
 	ctx            context.Context
 	app            *App
@@ -23,10 +24,11 @@ type QueryDaemon struct {
 }
 
 // NewQueryDaemon sets up the query daemon and starts the background process
-func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval time.Duration, maxFailed int) *QueryDaemon {
+func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval time.Duration, maxFailed int, queryFunction func(string) (Server, error)) *QueryDaemon {
 	qd := QueryDaemon{
 		QueryInterval:  interval,
 		MaxFailed:      maxFailed,
+		QueryFunction:  queryFunction,
 		ctx:            ctx,
 		app:            app,
 		failedAttempts: &syncmap.Map{},
@@ -122,7 +124,7 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 	tmp, hasFailed := qd.failedAttempts.Load(address)
 	attempts, _ := tmp.(int)
 
-	server, err := GetServerLegacyInfo(address)
+	server, err := qd.QueryFunction(address)
 	if err != nil {
 		if hasFailed {
 			if attempts > qd.MaxFailed {
