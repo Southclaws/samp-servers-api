@@ -199,6 +199,7 @@ func TestApp_ServerGET(t *testing.T) {
 			PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
 			Description: "Scavenge and Survive is a very fun server!",
 			Banner:      "https://i.imgur.com/o13jh8h",
+			Active:      true,
 		}},
 	}
 	for _, tt := range tests {
@@ -238,6 +239,7 @@ func TestApp_GetServer(t *testing.T) {
 				PlayerList:  []string{"Southclaws", "Dogmeat", "Avariam", "VIRUXE"},
 				Description: "Scavenge and Survive is a very fun server!",
 				Banner:      "https://i.imgur.com/o13jh8h",
+				Active:      true,
 			},
 			true,
 			false,

@@ -36,7 +36,7 @@ type Server struct {
 	PlayerList  []string          `json:"pl,omitempty"`
 	Description string            `json:"description"`
 	Banner      string            `json:"banner"`
-	active      bool
+	Active      bool              `json:"active"`
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
@@ -224,9 +224,9 @@ func (app *App) GetServer(address string) (server Server, found bool, err error)
 	return
 }
 
-// UpsertServer creates or updates a server object in the database, implicitly sets `active` to true
+// UpsertServer creates or updates a server object in the database, implicitly sets `Active` to true
 func (app *App) UpsertServer(server Server) (err error) {
-	server.active = true
+	server.Active = true
 	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
 	if err != nil {
 		logger.Error("upsert server failed",
@@ -246,9 +246,9 @@ func (app *App) UpsertServer(server Server) (err error) {
 	return
 }
 
-// MarkInactive marks a server as inactive by setting the `active` field to false
+// MarkInactive marks a server as inactive by setting the `Active` field to false
 func (app *App) MarkInactive(address string) (err error) {
-	info, err := app.db.Upsert(bson.M{"core.address": address}, Server{active: false})
+	info, err := app.db.Upsert(bson.M{"core.address": address}, Server{Active: false})
 	if err != nil {
 		logger.Error("upsert inactive server failed",
 			zap.String("address", address))
