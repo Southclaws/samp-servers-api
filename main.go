@@ -30,7 +30,6 @@ func init() {
 	dyn.SetLevel(zap.DebugLevel)
 	config.Level = dyn
 	config = zap.NewDevelopmentConfig()
-	config.DisableCaller = true
 
 	logger, err = config.Build()
 	if err != nil {
