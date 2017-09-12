@@ -88,7 +88,10 @@ func NewLegacyQuery(host string, timeout time.Duration) (lq *LegacyQuery, err er
 
 // Close closes a legacy query manager's connection
 func (lq *LegacyQuery) Close() error {
-	return lq.conn.Close()
+	if lq != nil {
+		return lq.conn.Close()
+	}
+	return nil
 }
 
 // SendQuery writes a SA:MP format query with the specified opcode, returns the raw response bytes
