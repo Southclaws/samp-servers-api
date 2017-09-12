@@ -26,10 +26,11 @@ func init() {
 	var err error
 	var config zap.Config
 
+	config = zap.NewProductionConfig()
+
 	dyn := zap.NewAtomicLevel()
 	dyn.SetLevel(zap.DebugLevel)
 	config.Level = dyn
-	config = zap.NewDevelopmentConfig()
 
 	logger, err = config.Build()
 	if err != nil {
