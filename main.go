@@ -28,9 +28,9 @@ func init() {
 
 	config = zap.NewProductionConfig()
 
-	dyn := zap.NewAtomicLevel()
-	dyn.SetLevel(zap.DebugLevel)
-	config.Level = dyn
+	// dyn := zap.NewAtomicLevel()
+	// dyn.SetLevel(zap.DebugLevel)
+	// config.Level = dyn
 
 	logger, err = config.Build()
 	if err != nil {
