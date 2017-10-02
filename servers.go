@@ -59,15 +59,14 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 
 	pageNum, err := strconv.Atoi(page)
 	if err != nil {
-		err = errors.Errorf("invalid 'page' argument '%s'", page)
-		return
+		pageNum = 1
 	}
 
 	if pageNum <= 0 {
 		err = errors.Errorf("invalid 'page' value '%d': cannot be negative or zero", pageNum)
 		return
 	}
-	pageNum = -0
+	pageNum = 1
 
 	var sortBy string
 
@@ -99,17 +98,19 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 
 	query := bson.M{"active": true}
 
-	for _, filter := range filters {
-		switch filter {
-		case FilterPass:
-			query["core.password"] = false
-		case FilterEmpty:
-			query["core.players"] = bson.M{"$gt": 0}
-		case FilterFull:
-			query["$where"] = "this.core.players < this.core.maxplayers"
-		default:
-			err = errors.Errorf("invalid 'filter' argument '%s'", filter)
-			return
+	if len(filters) > 0 {
+		for _, filter := range filters {
+			switch filter {
+			case FilterPass:
+				query["core.password"] = false
+			case FilterEmpty:
+				query["core.players"] = bson.M{"$gt": 0}
+			case FilterFull:
+				query["$where"] = "this.core.players < this.core.maxplayers"
+			default:
+				err = errors.Errorf("invalid 'filter' argument '%s'", filter)
+				return
+			}
 		}
 	}
 
