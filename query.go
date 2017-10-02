@@ -5,11 +5,12 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"math/rand"
 	"net"
 	"time"
 
 	"github.com/pkg/errors"
-
+	"github.com/saintfish/chardet"
 	"go.uber.org/zap"
 )
 
@@ -23,13 +24,16 @@ const (
 	Rules QueryType = 'r'
 	// Players is the 'c' packet type
 	Players QueryType = 'c'
+	// Ping is the 'p' packet type
+	Ping QueryType = 'p'
 )
 
 // LegacyQuery stores state for old-style masterlist queries
 type LegacyQuery struct {
-	addr    *net.UDPAddr
-	conn    net.Conn
-	Timeout time.Duration
+	addr     *net.UDPAddr
+	conn     net.Conn
+	Timeout  time.Duration
+	Detector *chardet.Detector
 }
 
 // GetServerLegacyInfo wraps a set of legacy queries and returns a new Server object with the
@@ -47,6 +51,11 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 				zap.Error(err))
 		}
 	}()
+
+	err = lq.GetPing()
+	if err != nil {
+		return server, err
+	}
 
 	server.Core, err = lq.GetInfo()
 	if err != nil {
@@ -83,6 +92,7 @@ func NewLegacyQuery(host string, timeout time.Duration) (lq *LegacyQuery, err er
 	}
 
 	lq.Timeout = timeout
+	lq.Detector = chardet.NewTextDetector()
 
 	return lq, nil
 }
@@ -106,11 +116,31 @@ func (lq *LegacyQuery) SendQuery(opcode QueryType) ([]byte, error) {
 		byte((lq.addr.Port >> 8) & 0xFF),
 	}
 
-	binary.Write(request, binary.LittleEndian, []byte("SAMP"))
-	binary.Write(request, binary.LittleEndian, lq.addr.IP.To4())
-	binary.Write(request, binary.LittleEndian, port[0])
-	binary.Write(request, binary.LittleEndian, port[1])
-	binary.Write(request, binary.LittleEndian, opcode)
+	if err := binary.Write(request, binary.LittleEndian, []byte("SAMP")); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(request, binary.LittleEndian, lq.addr.IP.To4()); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(request, binary.LittleEndian, port[0]); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(request, binary.LittleEndian, port[1]); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(request, binary.LittleEndian, opcode); err != nil {
+		return nil, err
+	}
+	if opcode == Ping {
+		p := make([]byte, 4)
+		_, err := rand.Read(p)
+		if err != nil {
+			return nil, err
+		}
+		if err := binary.Write(request, binary.LittleEndian, p); err != nil {
+			return nil, err
+		}
+	}
 
 	_, err = lq.conn.Write(request.Bytes())
 	if err != nil {
@@ -147,6 +177,16 @@ waiter:
 	return response[:n], nil
 }
 
+// GetPing sends and receives a packet to measure ping
+func (lq *LegacyQuery) GetPing() (err error) {
+	_, err = lq.SendQuery(Ping)
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
 // GetInfo returns the core server info for displaying on the browser list.
 func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	response, err := lq.SendQuery(Info)
@@ -168,7 +208,8 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	hostnameLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	server.Hostname = string(response[ptr : ptr+hostnameLen])
+	hostnameRaw := response[ptr : ptr+hostnameLen]
+	server.Hostname = string(hostnameRaw)
 	ptr += hostnameLen
 
 	gamemodeLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
@@ -179,6 +220,8 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 
 	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
+
+	// guess, _ := lq.Detector.DetectBest(hostnameRaw)
 
 	if languageLen > 0 {
 		server.Language = string(response[ptr : ptr+languageLen])

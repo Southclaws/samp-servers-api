@@ -79,7 +79,7 @@ func loadConfig(filename string) Config {
 
 		enc := json.NewEncoder(file)
 		enc.SetIndent("", "    ")
-		enc.Encode(&config)
+		err = enc.Encode(&config)
 		if err != nil {
 			logger.Fatal("failed to encode default config.json",
 				zap.Error(err))

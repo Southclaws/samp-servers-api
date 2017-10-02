@@ -129,14 +129,12 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 		if hasFailed {
 			if attempts > qd.MaxFailed {
 				return true, err
-			} else {
-				qd.failedAttempts.Store(address, attempts+1)
-				return false, err
 			}
-		} else {
-			qd.failedAttempts.Store(address, 1)
+			qd.failedAttempts.Store(address, attempts+1)
 			return false, err
 		}
+		qd.failedAttempts.Store(address, 1)
+		return false, err
 	}
 
 	if hasFailed {

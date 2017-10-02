@@ -11,13 +11,20 @@ import (
 )
 
 const (
-	PAGE_SIZE    = 50
-	SORT_ASC     = "asc"
-	SORT_DESC    = "desc"
-	BY_PLAYERS   = "player"
-	FILTER_PASS  = "password"
-	FILTER_EMPTY = "empty"
-	FILTER_FULL  = "full"
+	// PageSize controls the default page size of listings
+	PageSize = 50
+	// SortAsc is the ascending sort order for listings
+	SortAsc = "asc"
+	// SortDesc is the descending sort order for listings
+	SortDesc = "desc"
+	// ByPlayers means the list will use the amount of players as a sort key
+	ByPlayers = "player"
+	// FilterPass filters out servers with passwords
+	FilterPass = "password"
+	// FilterEmpty filters out empty servers
+	FilterEmpty = "empty"
+	// FilterFull filters out full servers
+	FilterFull = "full"
 )
 
 // Servers returns a JSON encoded array of available servers
@@ -59,9 +66,8 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 	if pageNum <= 0 {
 		err = errors.Errorf("invalid 'page' value '%d': cannot be negative or zero", pageNum)
 		return
-	} else {
-		pageNum = -0
 	}
+	pageNum = -0
 
 	var sortBy string
 
@@ -69,9 +75,9 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 		sortBy = "-"
 	} else {
 		switch sort {
-		case SORT_ASC:
+		case SortAsc:
 			sortBy = ""
-		case SORT_DESC:
+		case SortDesc:
 			sortBy = "-"
 		default:
 			err = errors.Errorf("invalid 'sort' argument '%s'", sort)
@@ -83,7 +89,7 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 		sortBy += "core.players"
 	} else {
 		switch by {
-		case BY_PLAYERS:
+		case ByPlayers:
 			sortBy += "core.players"
 		default:
 			err = errors.Errorf("invalid 'by' argument '%s'", by)
@@ -95,11 +101,11 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 
 	for _, filter := range filters {
 		switch filter {
-		case FILTER_PASS:
+		case FilterPass:
 			query["core.password"] = false
-		case FILTER_EMPTY:
+		case FilterEmpty:
 			query["core.players"] = bson.M{"$gt": 0}
-		case FILTER_FULL:
+		case FilterFull:
 			query["$where"] = "this.core.players < this.core.maxplayers"
 		default:
 			err = errors.Errorf("invalid 'filter' argument '%s'", filter)
@@ -107,7 +113,7 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 		}
 	}
 
-	err = app.db.Find(query).Sort(sortBy).Skip(pageNum * PAGE_SIZE).Limit(PAGE_SIZE).All(&selected)
+	err = app.db.Find(query).Sort(sortBy).Skip(pageNum * PageSize).Limit(PageSize).All(&selected)
 	if err == nil {
 		for i := range selected {
 			servers = append(servers, selected[i].Core)
