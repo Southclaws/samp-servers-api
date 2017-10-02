@@ -66,7 +66,7 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 		err = errors.Errorf("invalid 'page' value '%d': cannot be negative or zero", pageNum)
 		return
 	}
-	pageNum = 1
+	pageNum = pageNum - 1 // subtract 1 so 1 becomes 0, "page 1" makes more sense to users
 
 	var sortBy string
 
