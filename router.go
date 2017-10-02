@@ -56,6 +56,7 @@ func Initialise(config Config) *App {
 		err = app.Mongo.DB(config.MongoName).C(config.MongoCollection).Create(&mgo.CollectionInfo{})
 		if err != nil {
 			logger.Fatal("collection create failed",
+				zap.String("collection", config.MongoCollection),
 				zap.Error(err))
 		}
 	}
