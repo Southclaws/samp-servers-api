@@ -1,116 +1,106 @@
 # announce-backend
 
-Backend RESTful API for the "announce" SA:MP server plugin offering a consumable JSON API for listing servers
+[![Travis](https://img.shields.io/travis/Southclaws/announce-backend.svg)](https://travis-ci.org/Southclaws/announce-backend)[![Coverage](http://gocover.io/_badge/github.com/Southclaws/announce-backend)](http://gocover.io/github.com/Southclaws/announce-backend)
 
-*In development - subject to change*
+A SA:MP server listing API service. Anyone can POST a game server address which is added to a periodically queried queue and up-to-date information is provided as a JSON API.
 
-You can play with the API at: http://api.samp.southcla.ws/ - feel free to POST/GET as much as you want and submit any bugs you find, right now there's no verification and the database is wiped every now and then :)
+## API - Draft `v2`
 
-### Important terms of agreement
+### GET `http://samp.southcla.ws/v2/servers`
 
-- Every host that announces to the backend RESTful API is a free San Andreas Multiplayer service for San Andreas Multiplayer users.
-- Any user is free to choose what service they want to use.
-- The backend RESTful API needs to provide non-redundant*, complete and correct datasets regarding the requests it recieves.
-- Every announcement has a non-biased lifetime that is acceptible by the backend RESTful API.
-- Servers and the backend RESTful API can additionally agree on a custom announcement lifetime.
-- Multiple requests in a short period of time can be rate-limited by the backend RESTful API to prevent heavy workload.
-- Servers can't announce other servers.
-- The backend RESTful API can obtain IP addresses from the San Andreas Multiplayer API, and obtain server data accordingly.
+Returns a JSON array of `server` objects. The reason the field names are so short is to minimise unnecessary network traffic. There are also only a handful of fields required for a list, so properties such as the rules list and the players are omitted from this response.
 
-## API - Draft `v0`
+#### Query Parameters
 
-### `https://samp.southcla.ws/v0/servers`
+- `sort`
+  Either:
+  - `asc`
+  - `desc`
+- `by`
+  Either:
+  - `players`
+  - `rank`
+- `filter`
+  Comma separated set of filter parameters that reduce the amount of results:
+  - `password` - removes passworded servers
+  - `empty` - removes empty servers
+  - `full` - removes full servers
 
-Returns a JSON array of minimal `server` objects - may be paginated if requests get too large. The reason the field names are so short is to minimise unnecessary network traffic. There are also only a handful of fields required for a list, so properties such as the rules list and the players are omitted from this response.
+#### Result
 
-Example:
+The result is a JSON array of `ServerCore` objects. A `ServerCore` includes just the information required to render a row on a list of servers.
 
 ```json
 [
     {
-        "ip": "0.0.0.0:7272",
-        "hn": "My awesome server",
-        "pc": 2,
-        "mp": 10,
-        "gm": "tdm v1.0",
-        "la": "French",
+        "ip": "sa-arp.net:7777",
+        "hn": "[1994] SA Advanced Role-Play   (First Person)",
+        "pc": 5,
+        "pm": 160,
+        "gm": "SA:ARP v3.2.1 r14 (Roleplay)",
+        "la": "All (English)",
         "pa": false
     },
     {
-        "ip": "1.1.1.1:7272",
-        "hn": "My awesomer server",
-        "pc": 2,
-        "mp": 10,
-        "gm": "RPG",
+        "ip": "server.redcountyrp.com:7777",
+        "hn": "Red County Roleplay",
+        "pc": 104,
+        "pm": 150,
+        "gm": "RC-RP 2.5.2 R1",
         "la": "English",
-        "pa": true
+        "pa": false
     }
 ]
 ```
 
-### `https://samp.southcla.ws/v0/server/{ip}`
+### GET `http://samp.southcla.ws/v2/server/{ip}`
 
-Returns a `server` object for a particular server with more fields filled in. This can be used to show a user a more detailed overview of a server they may be interested in while only requesting the information when it's needed.
+Returns a `Server` object for a particular server with more fields filled in. This can be used to show a user a more detailed overview of a server they may be interested in while only requesting the information when it's needed.
 
-Example:
+#### Result
+
+The result includes the `core` object used for rendering the server row on a list as well as additional information such as the players, the rules and some new fields made possible by this project offering more customisation for server owners.
+
+Owners can define a `description` to help sell their server with more information about what's offered and a `banner` can be specified which is a URL to an image which can be rendered as part of a server browser implementation.
 
 ```json
 {
-    "ip": "0.0.0.0:7272",
-    "hn": "My awesome server",
-    "pc": 2,
-    "mp": 10,
-    "gm": "tdm v1.0",
-    "la": "French",
-    "pa": false,
+    "core": {
+        "ip": "151.80.108.109:8660",
+        "hn": "\ufffd\ufffd\ufffd\ufffd | LOS SANTOS GANG WARS | \ufffd\ufffd\ufffd\ufffd",
+        "pc": 29,
+        "pm": 100,
+        "gm": "Gang Wars/TDM/Turfs/mini",
+        "la": "English/Espa\ufffdol",
+        "pa": false
+    },
     "ru": {
-        "description": "My awesome server is really awesome and you should come play here because I am offering refunds for everyone, free stuff forever!",
-        "website": "https://myawesomesampserver.com",
-        "discord": "discord.me/myawesomeserver",
-        "ts3": "ts3.myawesomeserver.com",
-        "irc": "irc://freenode.net/myawesomeserver"
+        "lagcomp": "On",
+        "mapname": "San Andreas",
+        "version": "0.3.7-R2",
+        "weather": "12",
+        "weburl": "samp-lsgw.com",
+        "worldtime": "01:00"
     },
     "pl": [
-        "Southclaws",
-        "Dogmeat"
-    ]
+        "Serega_Kgerth",
+        "Eduardo_Sanchez",
+        "SuperGamerxD"
+    ],
+    "description": "",
+    "banner": "",
+    "active": true
 }
 ```
 
-### `https://samp.southcla.ws/v0/players/{ip}`
+### POST `http://samp.southcla.ws/v2/server/{ip}`
 
-Returns an array of `string` objects representing player names for a particular server.
+This is how server owners provide information about their server. This is simply the reverse of the `GET` method on the same endpoint. The response body must be a `Server` object with the only required fields being:
+- `ip` - IP or domain address
+- `hn` - current hostname
+- `pm` - maximum amount of players
+- `gm` - current gamemode name
 
-Example:
+Aside from that, owners can specify any details they want inside the `ru` (Rules) field such as Discord URL, forum link, donation link, youtube videos, etc.
 
-```json
-[
-    "Southclaws",
-    "Sheriffic",
-    "Avariam"
-]
-```
-
-
-## Dev/Testing
-
-You can test the endpoint by submitting a POST:
-
-```bash
-curl -XPOST localhost:7790/v1/server/samp.southcla.ws -d '{
-    "ip": "samp.southcla.ws",
-    "hn": "My cool server",
-    "pc": 12,
-    "pm": 32,
-    "gm": "SS",
-    "la": "English",
-    "pa": false
-}'
-```
-
-Then grab the data back with a GET:
-
-```bash
-curl localhost:7790/server/samp.southcla.ws
-{"ip":"samp.southcla.ws","hn":"My cool server","pc":12,"pm":32,"gm":"SS","la":"English","pa":false,"ru":{"weburl":"http://southcla.ws"},"pl":["steve","bob","laura"]}
-```
+Note: when performing a POST to this endpoint, the `{ip}` in the URL and the `ip` field in the payload **must** match the IP of the request. For example, if you try to POST to `/v2/server/100.0.0.1` from the network `100.0.0.2` the request will fail with `400 BAD REQUEST`. This means only the server owner can update the records of their own server from the same physical machine/network as the actual server. If you use a more complex networking setup that this causes problems with, please open an issue and we can work something out.

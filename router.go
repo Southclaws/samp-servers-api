@@ -40,25 +40,26 @@ func Initialise(config Config) *App {
 	}
 	logger.Info("connected to mongodb server")
 
-	err = app.Mongo.Login(&mgo.Credential{
-		Source:   config.MongoName,
-		Username: config.MongoUser,
-		Password: config.MongoPass,
-	})
-	if err != nil {
-		logger.Fatal("failed to log in to mongodb",
-			zap.Error(err))
+	if config.MongoPass != "" {
+		err = app.Mongo.Login(&mgo.Credential{
+			Source:   config.MongoName,
+			Username: config.MongoUser,
+			Password: config.MongoPass,
+		})
+		if err != nil {
+			logger.Fatal("failed to log in to mongodb",
+				zap.Error(err))
+		}
+		logger.Info("logged in to mongodb server")
 	}
-	logger.Info("logged in to mongodb server")
-
-	if !app.CollectionExists("servers") {
-		err = app.Mongo.DB(config.MongoName).C("servers").Create(&mgo.CollectionInfo{})
+	if !app.CollectionExists(config.MongoCollection) {
+		err = app.Mongo.DB(config.MongoName).C(config.MongoCollection).Create(&mgo.CollectionInfo{})
 		if err != nil {
 			logger.Fatal("collection create failed",
 				zap.Error(err))
 		}
 	}
-	app.db = app.Mongo.DB(config.MongoName).C("servers")
+	app.db = app.Mongo.DB(config.MongoName).C(config.MongoCollection)
 
 	err = app.db.EnsureIndex(mgo.Index{
 		Key:         []string{"core.address"},
@@ -77,25 +78,29 @@ func Initialise(config Config) *App {
 			zap.Error(err))
 	}
 
-	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery)
+	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, GetServerLegacyInfo)
 
 	app.Router = mux.NewRouter().StrictSlash(true)
 
-	app.Router.HandleFunc("/v1/server", app.ServerSimple).
+	app.Router.HandleFunc("/v2/server", app.ServerSimple).
 		Methods("OPTIONS", "POST").
 		Name("server")
 
-	app.Router.HandleFunc("/v1/server/{address}", app.Server).
+	app.Router.HandleFunc("/v2/server/{address}", app.Server).
 		Methods("OPTIONS", "GET", "POST").
 		Name("server")
 
-	app.Router.HandleFunc("/v1/servers", app.Servers).
+	app.Router.HandleFunc("/v2/servers", app.Servers).
 		Methods("OPTIONS", "GET").
 		Name("servers")
 
-	app.Router.HandleFunc("/v1/players/{address}", app.Players).
+	app.Router.HandleFunc("/v2/players/{address}", app.Players).
 		Methods("OPTIONS", "GET").
 		Name("players")
+
+	app.Router.HandleFunc("/v2/stats", app.Statistics).
+		Methods("OPTIONS", "GET").
+		Name("stats")
 
 	return &app
 }

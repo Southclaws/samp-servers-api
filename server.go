@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -35,6 +36,7 @@ type Server struct {
 	PlayerList  []string          `json:"pl,omitempty"`
 	Description string            `json:"description"`
 	Banner      string            `json:"banner"`
+	Active      bool              `json:"active"`
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
@@ -43,15 +45,15 @@ func (server *Server) Validate() (errs []error) {
 	errs = append(errs, addrErrs...)
 
 	if len(server.Core.Hostname) < 1 {
-		errs = append(errs, fmt.Errorf("hostname is empty"))
+		errs = append(errs, errors.New("hostname is empty"))
 	}
 
 	if server.Core.MaxPlayers == 0 {
-		errs = append(errs, fmt.Errorf("maxplayers is empty"))
+		errs = append(errs, errors.New("maxplayers is empty"))
 	}
 
 	if len(server.Core.Gamemode) < 1 {
-		errs = append(errs, fmt.Errorf("gamemode is empty"))
+		errs = append(errs, errors.New("gamemode is empty"))
 	}
 
 	return
@@ -62,11 +64,13 @@ func (server *Server) Validate() (errs []error) {
 // :7777 port if absent (this is the default SA:MP port) and strips the "samp:// protocol".
 func ValidateAddress(address string) (normalised string, errs []error) {
 	if len(address) < 1 {
-		errs = append(errs, fmt.Errorf("address is empty"))
+		errs = append(errs, errors.New("address is empty"))
 	}
 
 	if !strings.Contains(address, "://") {
 		normalised = fmt.Sprintf("samp://%s", address)
+	} else {
+		normalised = address
 	}
 
 	u, err := url.Parse(normalised)
@@ -76,11 +80,11 @@ func ValidateAddress(address string) (normalised string, errs []error) {
 	}
 
 	if u.User != nil {
-		errs = append(errs, fmt.Errorf("address contains a user:password component"))
+		errs = append(errs, errors.New("address contains a user:password component"))
 	}
 
 	if u.Scheme != "samp" {
-		errs = append(errs, fmt.Errorf("address contains invalid scheme '%s', must be either empty or 'samp://'", u.Scheme))
+		errs = append(errs, errors.Errorf("address contains invalid scheme '%s', must be either empty or 'samp://'", u.Scheme))
 	}
 
 	portStr := u.Port()
@@ -88,12 +92,12 @@ func ValidateAddress(address string) (normalised string, errs []error) {
 	if portStr != "" {
 		port, err := strconv.Atoi(u.Port())
 		if err != nil {
-			errs = append(errs, fmt.Errorf("invalid port '%s' specified", u.Port()))
+			errs = append(errs, errors.Errorf("invalid port '%s' specified", u.Port()))
 			return
 		}
 
 		if port < 1024 || port > 49152 {
-			errs = append(errs, fmt.Errorf("port %d falls within reserved or ephemeral range", port))
+			errs = append(errs, errors.Errorf("port %d falls within reserved or ephemeral range", port))
 			return
 		}
 
@@ -129,7 +133,7 @@ func (app *App) ServerSimple(w http.ResponseWriter, r *http.Request) {
 func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 	address, ok := mux.Vars(r)["address"]
 	if !ok {
-		WriteError(w, http.StatusBadRequest, fmt.Errorf("no address specified"))
+		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
 	}
 
 	switch r.Method {
@@ -154,7 +158,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !found {
-			WriteError(w, http.StatusNotFound, fmt.Errorf("could not find server by address '%s'", address))
+			WriteError(w, http.StatusNotFound, errors.Errorf("could not find server by address '%s'", address))
 			return
 		}
 
@@ -167,10 +171,13 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 
 	case "POST":
 		from := strings.Split(r.RemoteAddr, ":")[0]
-		addressIP := strings.Split(address, ":")[0]
-		if from != addressIP {
-			WriteError(w, http.StatusBadRequest, fmt.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
-			return
+
+		if app.config.VerifyByHost {
+			addressIP := strings.Split(address, ":")[0]
+			if from != addressIP {
+				WriteError(w, http.StatusBadRequest, errors.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
+				return
+			}
 		}
 
 		logger.Debug("posting server",
@@ -185,7 +192,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if server.Core.Address != address {
-			WriteError(w, http.StatusBadRequest, fmt.Errorf("route address '%v' does not match payload address '%s'", address, server.Core.Address))
+			WriteError(w, http.StatusBadRequest, errors.Errorf("route address '%v' does not match payload address '%s'", address, server.Core.Address))
 			return
 		}
 
@@ -204,7 +211,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 
 // GetServer looks up a server via the address
 func (app *App) GetServer(address string) (server Server, found bool, err error) {
-	err = app.db.Find(bson.M{"core.address": address}).One(&server)
+	err = app.db.Find(bson.M{"core.address": address, "active": true}).One(&server)
 	if err == mgo.ErrNotFound {
 		found = false
 		err = nil // the caller does not need to interpret this as an "error"
@@ -217,10 +224,15 @@ func (app *App) GetServer(address string) (server Server, found bool, err error)
 	return
 }
 
-// UpsertServer creates or updates a server object in the database.
+// UpsertServer creates or updates a server object in the database, implicitly sets `Active` to true
 func (app *App) UpsertServer(server Server) (err error) {
+	server.Active = true
 	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
-	if info != nil {
+	if err != nil {
+		logger.Error("upsert server failed",
+			zap.String("address", server.Core.Address))
+
+	} else if info != nil {
 		logger.Debug("upsert server",
 			zap.String("address", server.Core.Address),
 			zap.Int("matched", info.Matched),
@@ -229,6 +241,24 @@ func (app *App) UpsertServer(server Server) (err error) {
 			zap.Any("id", info.UpsertedId))
 
 		app.qd.Add(server.Core.Address)
+	}
+
+	return
+}
+
+// MarkInactive marks a server as inactive by setting the `Active` field to false
+func (app *App) MarkInactive(address string) (err error) {
+	info, err := app.db.Upsert(bson.M{"core.address": address}, Server{Active: false})
+	if err != nil {
+		logger.Error("upsert inactive server failed",
+			zap.String("address", address))
+	} else if info != nil {
+		logger.Debug("upsert inactive server",
+			zap.String("address", address),
+			zap.Int("matched", info.Matched),
+			zap.Int("removed", info.Removed),
+			zap.Int("updated", info.Updated),
+			zap.Any("id", info.UpsertedId))
 	}
 	return
 }

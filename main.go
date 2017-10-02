@@ -11,14 +11,16 @@ import (
 
 // Config stores app global configuration
 type Config struct {
-	Bind           string `json:"bind"`
-	MongoHost      string `json:"mongodb_host"`
-	MongoPort      string `json:"mongodb_port"`
-	MongoName      string `json:"mongodb_name"`
-	MongoUser      string `json:"mongodb_user"`
-	MongoPass      string `json:"mongodb_pass"`
-	QueryInterval  int    `json:"query_interval"`
-	MaxFailedQuery int    `json:"max_failed_query"`
+	Bind            string `json:"bind"`
+	MongoHost       string `json:"mongodb_host"`
+	MongoPort       string `json:"mongodb_port"`
+	MongoName       string `json:"mongodb_name"`
+	MongoUser       string `json:"mongodb_user"`
+	MongoPass       string `json:"mongodb_pass"`
+	MongoCollection string `json:"mongodb_collection"`
+	QueryInterval   int    `json:"query_interval"`
+	MaxFailedQuery  int    `json:"max_failed_query"`
+	VerifyByHost    bool   `json:"verify_by_host"`
 }
 
 var logger *zap.Logger
@@ -85,12 +87,13 @@ func loadConfig(filename string) Config {
 		config.MongoName = "samplist"
 		config.MongoUser = "samplist"
 		config.MongoPass = "changeme"
+		config.MongoCollection = "servers"
 		config.QueryInterval = 60
 		config.MaxFailedQuery = 10
 
 		enc := json.NewEncoder(file)
 		enc.SetIndent("", "    ")
-		enc.Encode(&config)
+		err = enc.Encode(&config)
 		if err != nil {
 			logger.Fatal("failed to encode default config.json",
 				zap.Error(err))
