@@ -107,9 +107,6 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 				query["core.players"] = bson.M{"$gt": 0}
 			case FilterFull:
 				query["$where"] = "this.core.players < this.core.maxplayers"
-			default:
-				err = errors.Errorf("invalid 'filter' argument '%s'", filter)
-				return
 			}
 		}
 	}
