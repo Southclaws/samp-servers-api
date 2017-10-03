@@ -26,6 +26,8 @@ type App struct {
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
 func Initialise(config Config) *App {
+	logger.Info("initialising announce-backend", zap.Any("config", config))
+
 	app := App{
 		config: config,
 	}

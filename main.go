@@ -1,26 +1,28 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"os"
+	"strconv"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
+var version = "master"
+
 // Config stores app global configuration
 type Config struct {
-	Bind            string `json:"bind"`
-	MongoHost       string `json:"mongodb_host"`
-	MongoPort       string `json:"mongodb_port"`
-	MongoName       string `json:"mongodb_name"`
-	MongoUser       string `json:"mongodb_user"`
-	MongoPass       string `json:"mongodb_pass"`
-	MongoCollection string `json:"mongodb_collection"`
-	QueryInterval   int    `json:"query_interval"`
-	MaxFailedQuery  int    `json:"max_failed_query"`
-	VerifyByHost    bool   `json:"verify_by_host"`
+	Version         string
+	Bind            string
+	MongoHost       string
+	MongoPort       string
+	MongoName       string
+	MongoUser       string
+	MongoPass       string
+	MongoCollection string
+	QueryInterval   int
+	MaxFailedQuery  int
+	VerifyByHost    bool
 }
 
 var logger *zap.Logger
@@ -55,69 +57,42 @@ func init() {
 }
 
 func main() {
-	configFile := flag.String("config", "config.json", "path to config.json file")
-	flag.Parse()
-
-	cfg := loadConfig(*configFile)
-
-	logger.Info("initialising announce-backend", zap.Any("config", cfg))
-
-	app := Initialise(cfg)
+	config := Config{
+		Version:         version,
+		Bind:            configStrFromEnv("BIND"),
+		MongoHost:       configStrFromEnv("MONGO_HOST"),
+		MongoPort:       configStrFromEnv("MONGO_PORT"),
+		MongoName:       configStrFromEnv("MONGO_NAME"),
+		MongoUser:       configStrFromEnv("MONGO_USER"),
+		MongoPass:       configStrFromEnv("MONGO_PASS"),
+		MongoCollection: configStrFromEnv("MONGO_COLLECTION"),
+		QueryInterval:   configIntFromEnv("QUERY_INTERVAL"),
+		MaxFailedQuery:  configIntFromEnv("MAX_FAILED_QUERY"),
+		VerifyByHost:    configIntFromEnv("VERIFY_BY_HOST") == 1,
+	}
+	app := Initialise(config)
 	app.Start()
 }
-
-func loadConfig(filename string) Config {
-	var (
-		err    error
-		file   *os.File
-		config Config
-	)
-
-	_, err = os.Stat(filename)
-	if os.IsNotExist(err) {
-		file, err = os.Create(filename)
-		if err != nil {
-			logger.Fatal("failed to create default config.json",
-				zap.Error(err))
-		}
-
-		config.Bind = "localhost:7790"
-		config.MongoHost = "localhost"
-		config.MongoPort = "27017"
-		config.MongoName = "samplist"
-		config.MongoUser = "samplist"
-		config.MongoPass = "changeme"
-		config.MongoCollection = "servers"
-		config.QueryInterval = 60
-		config.MaxFailedQuery = 10
-
-		enc := json.NewEncoder(file)
-		enc.SetIndent("", "    ")
-		err = enc.Encode(&config)
-		if err != nil {
-			logger.Fatal("failed to encode default config.json",
-				zap.Error(err))
-		}
-		return config
+func configStrFromEnv(name string) (value string) {
+	value = os.Getenv(name)
+	if value == "" {
+		logger.Fatal("environment variable not set",
+			zap.String("name", name))
 	}
+	return
+}
 
-	file, err = os.Open(filename)
+func configIntFromEnv(name string) (value int) {
+	valueStr := os.Getenv(name)
+	if valueStr == "" {
+		logger.Fatal("environment variable not set",
+			zap.String("name", name))
+	}
+	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		logger.Fatal("failed to open config file",
-			zap.Error(err))
+		logger.Fatal("failed to convert environment variable to int",
+			zap.Error(err),
+			zap.String("name", name))
 	}
-
-	err = json.NewDecoder(file).Decode(&config)
-	if err != nil {
-		logger.Fatal("failed to decode config file",
-			zap.Error(err))
-	}
-
-	err = file.Close()
-	if err != nil {
-		logger.Fatal("failed to close config file",
-			zap.Error(err))
-	}
-
-	return config
+	return
 }
