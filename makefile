@@ -5,10 +5,10 @@ MONGO_PASS := $(shell cat MONGO_PASS.private)
 .PHONY: version
 
 fast:
-	go build $(LDFLAGS) -o main
+	go build $(LDFLAGS) -o samp-servers-api
 
 static:
-	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o main .
+	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o samp-servers-api .
 
 local: fast
 	export BIND=localhost:7790
