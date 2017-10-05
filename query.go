@@ -64,11 +64,8 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 	server.Core.Address = host
 
 	server.Rules, err = lq.GetRules()
-	if err != nil {
-		return server, err
-	}
 
-	return server, err
+	return
 }
 
 // NewLegacyQuery creates a new legacy query handler for a server

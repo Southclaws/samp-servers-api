@@ -33,7 +33,6 @@ type ServerCore struct {
 type Server struct {
 	Core        ServerCore        `json:"core"`
 	Rules       map[string]string `json:"ru,omitempty"`
-	PlayerList  []string          `json:"pl,omitempty"`
 	Description string            `json:"description"`
 	Banner      string            `json:"banner"`
 	Active      bool              `json:"active"`
