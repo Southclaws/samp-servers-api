@@ -68,13 +68,6 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 		return server, err
 	}
 
-	if server.Core.Players < 100 {
-		server.PlayerList, err = lq.GetPlayers()
-		if err != nil {
-			return server, err
-		}
-	}
-
 	return server, err
 }
 
