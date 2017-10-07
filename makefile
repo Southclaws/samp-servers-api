@@ -26,7 +26,7 @@ local: fast
 version:
 	git tag $(VERSION)
 	git push
-	git push origin $(VERSION)
+	git push --tags
 
 # Docker
 
