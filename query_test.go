@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -38,6 +39,7 @@ func TestGetServerLegacyInfo(t *testing.T) {
 				assert.NotEmpty(t, server.Core.Gamemode)
 				assert.NotZero(t, server.Core.MaxPlayers)
 			}
+			time.Sleep(time.Second) // allow goroutines to run so socket timeout doesn't fire
 		})
 	}
 }
