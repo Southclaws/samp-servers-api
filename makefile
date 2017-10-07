@@ -1,4 +1,4 @@
-VERSION := $(shell git rev-parse HEAD)
+VERSION := $(shell cat VERSION)
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 MONGO_PASS := $(shell cat MONGO_PASS.private)
 
