@@ -73,6 +73,7 @@ func main() {
 	app := Initialise(config)
 	app.Start()
 }
+
 func configStrFromEnv(name string) (value string) {
 	value = os.Getenv(name)
 	if value == "" {

@@ -22,7 +22,8 @@ func TestGetServerLegacyInfo(t *testing.T) {
 		args    args
 		wantErr string
 	}{
-		{"valid", args{"198.251.83.150:7777"}, ""},
+		{"valid", args{"server.ls-rp.com:7777"}, ""},
+		{"valid", args{"46.174.54.184:7777"}, ""},
 		{"invalid", args{"18.251.83.150:80"}, "socket read timed out"},
 		{"invalid", args{"not a valid url"}, "failed to resolve: address not a valid url: missing port in address"},
 	}

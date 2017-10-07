@@ -11,7 +11,7 @@ static:
 	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o samp-servers-api .
 
 local: fast
-	export BIND=localhost:7790
+	export BIND=localhost:8080
 	export MONGO_USER=samplist
 	export MONGO_PASS=$(MONGO_PASS)
 	export MONGO_HOST=southcla.ws
@@ -40,7 +40,7 @@ run:
 	-docker rm samp-servers-test
 	docker run \
 		--name samp-servers-test \
-		-e BIND=localhost:7790 \
+		-e BIND=localhost:8080 \
 		-e MONGO_USER=samplist \
 		-e MONGO_PASS=$(MONGO_PASS) \
 		-e MONGO_HOST=southcla.ws \
