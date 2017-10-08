@@ -31,7 +31,7 @@ version:
 # Docker
 
 build:
-	docker build -t southclaws/samp-servers:$(VERSION) .
+	docker build --no-cache -t southclaws/samp-servers:$(VERSION) .
 
 push: build
 	docker push southclaws/samp-servers:$(VERSION)
