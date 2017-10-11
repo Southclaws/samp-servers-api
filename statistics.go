@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -18,8 +19,17 @@ type Statistics struct {
 func (app *App) Statistics(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("getting listing statistics")
 
-	// 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
+	stats, err := app.GetStatistics()
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
+	}
 
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(stats)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to encode response"))
+		return
+	}
 }
 
 // GetStatistics returns the current statistics for the server database
