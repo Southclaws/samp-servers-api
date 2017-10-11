@@ -18,8 +18,8 @@ func TestMain(m *testing.M) {
 		MongoUser:       "root",
 		MongoPass:       "",
 		MongoCollection: "servers",
-		QueryInterval:   1,
-		MaxFailedQuery:  3,
+		QueryInterval:   100000,
+		MaxFailedQuery:  0,
 		VerifyByHost:    false,
 	}
 

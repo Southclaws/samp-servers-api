@@ -73,4 +73,6 @@ test-container: build-test
 	docker run --network host southclaws/samp-servers-test:$(VERSION)
 
 mongodb:
-	docker run --name mongodb --detach --network host mongo
+	-docker stop mongodb
+	-docker rm mongodb
+	docker run --name mongodb -p 27017:27017 -d mongo

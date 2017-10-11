@@ -26,7 +26,6 @@ func TestApp_GetServers(t *testing.T) {
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
-				{"93.119.25.177:7777", "RulzGame - Curand Online", 0, 50, "Grand Larceny", "RO/EN", true},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false},
 			},
 			false,
@@ -35,7 +34,6 @@ func TestApp_GetServers(t *testing.T) {
 			"v desc",
 			args{"1", "asc", "", []string{}},
 			[]ServerCore{
-				{"93.119.25.177:7777", "RulzGame - Curand Online", 0, 50, "Grand Larceny", "RO/EN", true},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true},
@@ -69,7 +67,6 @@ func TestApp_GetServers(t *testing.T) {
 			[]ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false},
-				{"93.119.25.177:7777", "RulzGame - Curand Online", 0, 50, "Grand Larceny", "RO/EN", true},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false},
 			},
 			false,
