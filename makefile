@@ -42,7 +42,7 @@ build-prod:
 build-test:
 	docker build --no-cache -t southclaws/samp-servers-test:$(VERSION) -f Dockerfile.testing .
 
-push: build
+push: build-prod
 	docker push southclaws/samp-servers:$(VERSION)
 	
 run:
