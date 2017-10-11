@@ -28,10 +28,19 @@ version:
 	git push
 	git push origin $(VERSION)
 
+test:
+	go test -v -race
+
 # Docker
 
 build:
+	docker build --no-cache -t southclaws/samp-servers:$(VERSION) -f Dockerfile.dev .
+
+build-prod:
 	docker build --no-cache -t southclaws/samp-servers:$(VERSION) .
+
+build-test:
+	docker build --no-cache -t southclaws/samp-servers-test:$(VERSION) -f Dockerfile.testing .
 
 push: build
 	docker push southclaws/samp-servers:$(VERSION)
@@ -40,10 +49,10 @@ run:
 	-docker rm samp-servers-test
 	docker run \
 		--name samp-servers-test \
+		--network host \
 		-e BIND=localhost:8080 \
 		-e MONGO_USER=samplist \
-		-e MONGO_PASS=$(MONGO_PASS) \
-		-e MONGO_HOST=southcla.ws \
+		-e MONGO_HOST=localhost \
 		-e MONGO_PORT=27017 \
 		-e MONGO_NAME=samplist \
 		-e MONGO_COLLECTION=servers \
@@ -57,3 +66,11 @@ enter:
 
 enter-mount:
 	docker run -v $(shell pwd)/testspace:/samp -it --entrypoint=bash southclaws/samp-servers:$(VERSION)
+
+# Test stuff
+
+test-container: build-test
+	docker run --network host southclaws/samp-servers-test:$(VERSION)
+
+mongodb:
+	docker run --name mongodb --detach --network host mongo

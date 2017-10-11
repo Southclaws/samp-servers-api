@@ -64,7 +64,7 @@ func main() {
 		MongoPort:       configStrFromEnv("MONGO_PORT"),
 		MongoName:       configStrFromEnv("MONGO_NAME"),
 		MongoUser:       configStrFromEnv("MONGO_USER"),
-		MongoPass:       configStrFromEnv("MONGO_PASS"),
+		MongoPass:       os.Getenv("MONGO_PASS"),
 		MongoCollection: configStrFromEnv("MONGO_COLLECTION"),
 		QueryInterval:   configIntFromEnv("QUERY_INTERVAL"),
 		MaxFailedQuery:  configIntFromEnv("MAX_FAILED_QUERY"),
