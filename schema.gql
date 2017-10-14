@@ -1,0 +1,8 @@
+type Query {
+    Servers: [Server]!
+    Server: Server
+}
+
+type Server {
+    ip: String
+}
