@@ -111,7 +111,7 @@ func (app *App) GetServers(page, sort, by string, filters []string) (servers []S
 		}
 	}
 
-	err = app.db.Find(query).Sort(sortBy).Skip(pageNum * PageSize).Limit(PageSize).All(&selected)
+	err = app.collection.Find(query).Sort(sortBy).Skip(pageNum * PageSize).Limit(PageSize).All(&selected)
 	if err == nil {
 		for i := range selected {
 			servers = append(servers, selected[i].Core)

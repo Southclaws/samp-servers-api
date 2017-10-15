@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -15,13 +14,11 @@ import (
 
 // App stores global state for routing
 type App struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	config Config
-	Mongo  *mgo.Session
-	db     *mgo.Collection
-	qd     *QueryDaemon
-	Router *mux.Router
+	ctx        context.Context
+	cancel     context.CancelFunc
+	config     Config
+	collection *mgo.Collection
+	qd         *QueryDaemon
 }
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
@@ -33,76 +30,39 @@ func Initialise(config Config) *App {
 	}
 	app.ctx, app.cancel = context.WithCancel(context.Background())
 
-	var err error
-
-	app.Mongo, err = mgo.Dial(fmt.Sprintf("%s:%s", config.MongoHost, config.MongoPort))
-	if err != nil {
-		logger.Fatal("failed to connect to mongodb",
-			zap.Error(err))
-	}
+	// Connect to the database, receive a collection pointer
+	app.collection = ConnectDB(config)
 	logger.Info("connected to mongodb server")
 
-	if config.MongoPass != "" {
-		err = app.Mongo.Login(&mgo.Credential{
-			Source:   config.MongoName,
-			Username: config.MongoUser,
-			Password: config.MongoPass,
-		})
-		if err != nil {
-			logger.Fatal("failed to log in to mongodb",
-				zap.Error(err))
-		}
-		logger.Info("logged in to mongodb server")
-	}
-	if !app.CollectionExists(config.MongoCollection) {
-		err = app.Mongo.DB(config.MongoName).C(config.MongoCollection).Create(&mgo.CollectionInfo{})
-		if err != nil {
-			logger.Fatal("collection create failed",
-				zap.String("collection", config.MongoCollection),
-				zap.Error(err))
-		}
-	}
-	app.db = app.Mongo.DB(config.MongoName).C(config.MongoCollection)
-
-	err = app.db.EnsureIndex(mgo.Index{
-		Key:         []string{"core.address"},
-		Unique:      true,
-		DropDups:    true,
-		ExpireAfter: time.Hour,
-	})
-	if err != nil {
-		logger.Fatal("index ensure failed",
-			zap.Error(err))
-	}
-
-	addresses, err := app.LoadAllAddresses()
-	if err != nil {
-		logger.Fatal("failed to load current addresses for query daemon",
-			zap.Error(err))
-	}
-
+	// Grab existing addresses from database and pass to the Query Daemon
+	addresses := app.LoadAllAddresses()
 	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, GetServerLegacyInfo)
 
-	app.Router = mux.NewRouter().StrictSlash(true)
+	// Set up HTTP server
+	router := mux.NewRouter().StrictSlash(true)
 
-	app.Router.HandleFunc("/v2/server", app.ServerSimple).
+	router.HandleFunc("/v2/server", app.ServerSimple).
 		Methods("OPTIONS", "POST").
 		Name("server")
 
-	app.Router.HandleFunc("/v2/server/{address}", app.Server).
+	router.HandleFunc("/v2/server/{address}", app.Server).
 		Methods("OPTIONS", "GET", "POST").
 		Name("server")
 
-	app.Router.HandleFunc("/v2/servers", app.Servers).
+	router.HandleFunc("/v2/servers", app.Servers).
 		Methods("OPTIONS", "GET").
 		Name("servers")
 
-	app.Router.HandleFunc("/v2/players/{address}", app.Players).
+	router.HandleFunc("/v2/players/{address}", app.Players).
 		Methods("OPTIONS", "GET").
 		Name("players")
 
-	app.Router.HandleFunc("/v2/stats", app.Statistics).
+	router.HandleFunc("/v2/stats", app.Statistics).
 		Methods("OPTIONS", "GET").
+		Name("stats")
+
+	router.HandleFunc("/graphql/v1", app.GraphQL).
+		Methods("OPTIONS", "GET", "POST").
 		Name("stats")
 
 	return &app
@@ -116,38 +76,23 @@ func (app *App) Start() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	err := http.ListenAndServe(app.config.Bind, handlers.CORS(headersOk, originsOk, methodsOk)(app.Router))
+	err := http.ListenAndServe(app.config.Bind, handlers.CORS(headersOk, originsOk, methodsOk)(router))
 
 	logger.Fatal("http server encountered fatal error",
 		zap.Error(err))
 }
 
-// CollectionExists checks if a collection exists in MongoDB
-func (app *App) CollectionExists(name string) bool {
-	collections, err := app.Mongo.DB(app.config.MongoName).CollectionNames()
-	if err != nil {
-		logger.Fatal("failed to get collection names",
-			zap.Error(err))
-	}
-
-	for _, collection := range collections {
-		if collection == name {
-			return true
-		}
-	}
-
-	return false
-}
-
 // LoadAllAddresses loads all addresses from the database as a slice of strings for synchronisation
 // with the QueryDaemon.
-func (app *App) LoadAllAddresses() (result []string, err error) {
+func (app *App) LoadAllAddresses() (result []string) {
 	allServers := []Server{}
-	err = app.db.Find(bson.M{}).All(&allServers)
-	if err == nil {
-		for i := range allServers {
-			result = append(result, allServers[i].Core.Address)
-		}
+	err := app.collection.Find(bson.M{}).All(&allServers)
+	if err != nil {
+		logger.Fatal("failed to load current addresses for query daemon",
+			zap.Error(err))
+	}
+	for i := range allServers {
+		result = append(result, allServers[i].Core.Address)
 	}
 	return
 }

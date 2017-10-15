@@ -210,7 +210,7 @@ func (app *App) Server(w http.ResponseWriter, r *http.Request) {
 
 // GetServer looks up a server via the address
 func (app *App) GetServer(address string) (server Server, found bool, err error) {
-	err = app.db.Find(bson.M{"core.address": address, "active": true}).One(&server)
+	err = app.collection.Find(bson.M{"core.address": address, "active": true}).One(&server)
 	if err == mgo.ErrNotFound {
 		found = false
 		err = nil // the caller does not need to interpret this as an "error"
@@ -226,7 +226,7 @@ func (app *App) GetServer(address string) (server Server, found bool, err error)
 // UpsertServer creates or updates a server object in the database, implicitly sets `Active` to true
 func (app *App) UpsertServer(server Server) (err error) {
 	server.Active = true
-	info, err := app.db.Upsert(bson.M{"core.address": server.Core.Address}, server)
+	info, err := app.collection.Upsert(bson.M{"core.address": server.Core.Address}, server)
 	if err != nil {
 		logger.Error("upsert server failed",
 			zap.String("address", server.Core.Address))
@@ -247,7 +247,7 @@ func (app *App) UpsertServer(server Server) (err error) {
 
 // MarkInactive marks a server as inactive by setting the `Active` field to false
 func (app *App) MarkInactive(address string) (err error) {
-	info, err := app.db.Upsert(bson.M{"core.address": address}, Server{Active: false})
+	info, err := app.collection.Upsert(bson.M{"core.address": address}, Server{Active: false})
 	if err != nil {
 		logger.Error("upsert inactive server failed",
 			zap.String("address", address))
@@ -264,5 +264,5 @@ func (app *App) MarkInactive(address string) (err error) {
 
 // RemoveServer deletes a server from the database
 func (app *App) RemoveServer(address string) (err error) {
-	return app.db.Remove(bson.M{"core.address": address})
+	return app.collection.Remove(bson.M{"core.address": address})
 }

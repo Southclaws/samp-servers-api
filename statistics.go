@@ -35,13 +35,13 @@ func (app *App) Statistics(w http.ResponseWriter, r *http.Request) {
 // GetStatistics returns the current statistics for the server database
 // todo: cache this data
 func (app *App) GetStatistics() (statistics Statistics, err error) {
-	statistics.Servers, err = app.db.Find(bson.M{}).Count()
+	statistics.Servers, err = app.collection.Find(bson.M{}).Count()
 	if err != nil {
 		err = errors.Wrap(err, "failed to execute find query on database")
 		return
 	}
 
-	pipe := app.db.Pipe([]bson.M{
+	pipe := app.collection.Pipe([]bson.M{
 		bson.M{
 			"$group": bson.M{
 				"_id": nil,
