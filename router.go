@@ -19,6 +19,7 @@ type App struct {
 	config     Config
 	collection *mgo.Collection
 	qd         *QueryDaemon
+	router     *mux.Router
 }
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
@@ -39,29 +40,29 @@ func Initialise(config Config) *App {
 	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, GetServerLegacyInfo)
 
 	// Set up HTTP server
-	router := mux.NewRouter().StrictSlash(true)
+	app.router = mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/v2/server", app.ServerSimple).
+	app.router.HandleFunc("/v2/server", app.ServerSimple).
 		Methods("OPTIONS", "POST").
 		Name("server")
 
-	router.HandleFunc("/v2/server/{address}", app.Server).
+	app.router.HandleFunc("/v2/server/{address}", app.Server).
 		Methods("OPTIONS", "GET", "POST").
 		Name("server")
 
-	router.HandleFunc("/v2/servers", app.Servers).
+	app.router.HandleFunc("/v2/servers", app.Servers).
 		Methods("OPTIONS", "GET").
 		Name("servers")
 
-	router.HandleFunc("/v2/players/{address}", app.Players).
+	app.router.HandleFunc("/v2/players/{address}", app.Players).
 		Methods("OPTIONS", "GET").
 		Name("players")
 
-	router.HandleFunc("/v2/stats", app.Statistics).
+	app.router.HandleFunc("/v2/stats", app.Statistics).
 		Methods("OPTIONS", "GET").
 		Name("stats")
 
-	router.HandleFunc("/graphql/v1", app.GraphQL).
+	app.router.HandleFunc("/graphql/v1", app.GraphQL).
 		Methods("OPTIONS", "GET", "POST").
 		Name("stats")
 
@@ -76,7 +77,7 @@ func (app *App) Start() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	err := http.ListenAndServe(app.config.Bind, handlers.CORS(headersOk, originsOk, methodsOk)(router))
+	err := http.ListenAndServe(app.config.Bind, handlers.CORS(headersOk, originsOk, methodsOk)(app.router))
 
 	logger.Fatal("http server encountered fatal error",
 		zap.Error(err))
