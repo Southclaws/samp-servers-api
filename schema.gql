@@ -1,8 +1,22 @@
 type Query {
-    Servers: [Server]!
-    Server: Server
+    Servers(page: Int, sort: String, by: String, filters: [String]): [Server]!
+    Server(ip: String): Server!
 }
 
 type Server {
-    ip: String
+    Address: String
+    Hostname: String
+    Players: Int
+    MaxPlayers: Int
+    Gamemode: String
+    Language: String
+    Password: Boolean
+    Rules: [Rule]
+    Description: String
+    Banner: String
+}
+
+type Rule {
+    Name: String
+    Value: String
 }
