@@ -9,6 +9,8 @@ import (
 	"net"
 	"time"
 
+	"github.com/andelf/iconv-go"
+
 	"github.com/pkg/errors"
 	"github.com/saintfish/chardet"
 	"go.uber.org/zap"
@@ -217,7 +219,12 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	// guess, _ := lq.Detector.DetectBest(hostnameRaw)
+	guess, _ := lq.Detector.DetectBest(hostnameRaw)
+
+	logger.Debug("guessed hostname encoding",
+		zap.String("charset", guess.Charset),
+		zap.Int("confidence", guess.Confidence),
+		zap.String("language", guess.Language))
 
 	if languageLen > 0 {
 		server.Language = string(response[ptr : ptr+languageLen])
@@ -296,4 +303,29 @@ func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
 	}
 
 	return players, nil
+}
+
+// DecodeANSI guesses the encoding of a string and returns the UTF-8 representation
+func DecodeANSI(ansi []byte) (utf8 string, err error) {
+	det := chardet.NewTextDetector()
+	guess, err := det.DetectBest(ansi)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to detect best charset for '%s'", string(ansi))
+		return
+	}
+
+	output := []byte{}
+	_, _, err = iconv.Convert(ansi, output, guess.Charset, "UTF-8")
+	if err != nil {
+		err = errors.Wrapf(err, "failed to convert using charset '%s'", guess.Charset)
+		return
+	}
+
+	logger.Info("guessed hostname encoding",
+		zap.String("charset", guess.Charset),
+		zap.Int("confidence", guess.Confidence),
+		zap.String("language", guess.Language))
+
+	utf8 = string(output)
+	return
 }

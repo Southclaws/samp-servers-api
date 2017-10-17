@@ -43,3 +43,29 @@ func TestGetServerLegacyInfo(t *testing.T) {
 		})
 	}
 }
+
+func TestDecodeANSI(t *testing.T) {
+	type args struct {
+		ansi []byte
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantUtf8 string
+		wantErr  bool
+	}{
+		{"valid russian", args{[]byte("Àáñîëþò ÐîëåÏëåé 1 | Ïëàòèíóì")}, "Абсолют РолеПлей 1 | Платинум", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotUtf8, err := DecodeANSI(tt.args.ansi)
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+
+			assert.Equal(t, tt.wantUtf8, gotUtf8)
+		})
+	}
+}

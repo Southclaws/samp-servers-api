@@ -11,17 +11,17 @@ static:
 	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o samp-servers-api .
 
 local: fast
-	export BIND=localhost:8080
-	export MONGO_USER=samplist
-	export MONGO_PASS=$(MONGO_PASS)
-	export MONGO_HOST=southcla.ws
-	export MONGO_PORT=27017
-	export MONGO_NAME=samplist
-	export MONGO_COLLECTION=servers
-	export QUERY_INTERVAL=0
-	export MAX_FAILED_QUERY=0
-	export VERIFY_BY_HOST=0
-	./main
+	BIND=localhost:8080 \
+	MONGO_USER=samplist \
+	MONGO_HOST=localhost \
+	MONGO_PORT=27017 \
+	MONGO_NAME=samplist \
+	MONGO_COLLECTION=servers \
+	QUERY_INTERVAL=10 \
+	MAX_FAILED_QUERY=10 \
+	VERIFY_BY_HOST=0 \
+	DEBUG=1 \
+	./samp-servers-api
 
 version:
 	git tag $(VERSION)
