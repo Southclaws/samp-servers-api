@@ -219,12 +219,11 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	guess, _ := lq.Detector.DetectBest(hostnameRaw)
-
-	logger.Debug("guessed hostname encoding",
-		zap.String("charset", guess.Charset),
-		zap.Int("confidence", guess.Confidence),
-		zap.String("language", guess.Language))
+	_, err = DecodeANSI(hostnameRaw)
+	if err != nil {
+		logger.Warn("failed to decode ANSI",
+			zap.Error(err))
+	}
 
 	if languageLen > 0 {
 		server.Language = string(response[ptr : ptr+languageLen])
