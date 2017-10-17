@@ -9,10 +9,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/andelf/iconv-go"
-
 	"github.com/pkg/errors"
-	"github.com/saintfish/chardet"
 	"go.uber.org/zap"
 )
 
@@ -32,10 +29,9 @@ const (
 
 // LegacyQuery stores state for old-style masterlist queries
 type LegacyQuery struct {
-	addr     *net.UDPAddr
-	conn     net.Conn
-	Timeout  time.Duration
-	Detector *chardet.Detector
+	addr    *net.UDPAddr
+	conn    net.Conn
+	Timeout time.Duration
 }
 
 // GetServerLegacyInfo wraps a set of legacy queries and returns a new Server object with the
@@ -84,7 +80,6 @@ func NewLegacyQuery(host string, timeout time.Duration) (lq *LegacyQuery, err er
 	}
 
 	lq.Timeout = timeout
-	lq.Detector = chardet.NewTextDetector()
 
 	return lq, nil
 }
@@ -219,12 +214,6 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	_, err = DecodeANSI(hostnameRaw)
-	if err != nil {
-		logger.Warn("failed to decode ANSI",
-			zap.Error(err))
-	}
-
 	if languageLen > 0 {
 		server.Language = string(response[ptr : ptr+languageLen])
 		// ptr += languageLen
@@ -302,29 +291,4 @@ func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
 	}
 
 	return players, nil
-}
-
-// DecodeANSI guesses the encoding of a string and returns the UTF-8 representation
-func DecodeANSI(ansi []byte) (utf8 string, err error) {
-	det := chardet.NewTextDetector()
-	guess, err := det.DetectBest(ansi)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to detect best charset for '%s'", string(ansi))
-		return
-	}
-
-	output := []byte{}
-	_, _, err = iconv.Convert(ansi, output, guess.Charset, "UTF-8")
-	if err != nil {
-		err = errors.Wrapf(err, "failed to convert using charset '%s'", guess.Charset)
-		return
-	}
-
-	logger.Info("guessed hostname encoding",
-		zap.String("charset", guess.Charset),
-		zap.Int("confidence", guess.Confidence),
-		zap.String("language", guess.Language))
-
-	utf8 = string(output)
-	return
 }
