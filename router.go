@@ -54,10 +54,6 @@ func Initialise(config Config) *App {
 		Methods("OPTIONS", "GET").
 		Name("servers")
 
-	app.router.HandleFunc("/v2/players/{address}", app.Players).
-		Methods("OPTIONS", "GET").
-		Name("players")
-
 	app.router.HandleFunc("/v2/stats", app.Statistics).
 		Methods("OPTIONS", "GET").
 		Name("stats")
