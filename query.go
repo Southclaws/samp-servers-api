@@ -211,14 +211,13 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	hostnameLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	hostnameRaw := response[ptr : ptr+hostnameLen]
-	server.Hostname = attemptDecode(hostnameRaw)
+	server.Hostname = attemptDecode(response[ptr : ptr+hostnameLen])
 	ptr += hostnameLen
 
 	gamemodeLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	server.Gamemode = string(response[ptr : ptr+gamemodeLen])
+	server.Gamemode = attemptDecode(response[ptr : ptr+gamemodeLen])
 	ptr += gamemodeLen
 
 	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
