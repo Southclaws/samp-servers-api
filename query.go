@@ -177,9 +177,6 @@ waiter:
 		}
 	}
 
-	logger.Debug("successfully received query response",
-		zap.Int("length", n))
-
 	return response[:n], nil
 }
 
