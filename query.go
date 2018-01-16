@@ -39,7 +39,7 @@ type LegacyQuery struct {
 func GetServerLegacyInfo(host string) (server Server, err error) {
 	lq, err := NewLegacyQuery(host, time.Second*5)
 	if err != nil {
-		return server, err
+		return
 	}
 	defer func() {
 		err := lq.Close()
@@ -52,16 +52,26 @@ func GetServerLegacyInfo(host string) (server Server, err error) {
 
 	err = lq.GetPing()
 	if err != nil {
-		return server, err
+		return
 	}
 
 	server.Core, err = lq.GetInfo()
 	if err != nil {
-		return server, err
+		return
 	}
 	server.Core.Address = host
 
 	server.Rules, err = lq.GetRules()
+	if err != nil {
+		return
+	}
+
+	ver, ok := server.Rules["version"]
+	if !ok {
+		err = errors.New("rules did not contain version")
+		return
+	}
+	server.Core.Version = ver
 
 	return
 }

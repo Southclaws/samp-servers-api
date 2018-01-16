@@ -26,6 +26,7 @@ type ServerCore struct {
 	Gamemode   string `json:"gm"`
 	Language   string `json:"la"`
 	Password   bool   `json:"pa"`
+	Version    string `json:"vn"`
 }
 
 // Server contains all the information associated with a game server including the core information, the standard SA:MP
