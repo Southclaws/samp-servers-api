@@ -9,6 +9,9 @@ import (
 	"net"
 	"time"
 
+	"github.com/saintfish/chardet"
+	"golang.org/x/text/encoding/htmlindex"
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -212,7 +215,7 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	ptr += 4
 
 	hostnameRaw := response[ptr : ptr+hostnameLen]
-	server.Hostname = string(hostnameRaw)
+	server.Hostname = attemptDecode(hostnameRaw)
 	ptr += hostnameLen
 
 	gamemodeLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
@@ -301,4 +304,22 @@ func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
 	}
 
 	return players, nil
+}
+
+func attemptDecode(input []byte) (result string) {
+	result = string(input)
+	detector, err := chardet.NewTextDetector().DetectBest(input)
+	if err != nil {
+		return
+	}
+	e, err := htmlindex.Get(detector.Charset)
+	if err != nil {
+		return
+	}
+	dec := e.NewDecoder()
+	decoded, err := dec.Bytes(input)
+	if err != nil {
+		return
+	}
+	return string(decoded)
 }
