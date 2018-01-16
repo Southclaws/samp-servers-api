@@ -211,25 +211,35 @@ func (lq *LegacyQuery) GetInfo() (server ServerCore, err error) {
 	hostnameLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	server.Hostname = attemptDecode(response[ptr : ptr+hostnameLen])
+	hostnameRaw := response[ptr : ptr+hostnameLen]
 	ptr += hostnameLen
 
 	gamemodeLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
-	server.Gamemode = attemptDecode(response[ptr : ptr+gamemodeLen])
+	gamemodeRaw := response[ptr : ptr+gamemodeLen]
 	ptr += gamemodeLen
 
 	languageLen := int(binary.LittleEndian.Uint16(response[ptr : ptr+4]))
 	ptr += 4
 
+	languageRaw := response[ptr : ptr+languageLen]
+	ptr += languageLen
+
+	guessHelper := bytes.Join([][]byte{
+		hostnameRaw,
+		gamemodeRaw,
+		languageRaw,
+	}, []byte(" "))
+
+	server.Gamemode = attemptDecode(gamemodeRaw, guessHelper)
+	server.Hostname = attemptDecode(hostnameRaw, guessHelper)
+
 	if languageLen > 0 {
-		server.Language = string(response[ptr : ptr+languageLen])
-		// ptr += languageLen
+		server.Language = attemptDecode(languageRaw, guessHelper)
 	} else {
 		server.Language = "-"
 	}
-
 	return
 }
 
@@ -302,9 +312,9 @@ func (lq *LegacyQuery) GetPlayers() (players []string, err error) {
 	return players, nil
 }
 
-func attemptDecode(input []byte) (result string) {
+func attemptDecode(input []byte, extra []byte) (result string) {
 	result = string(input)
-	detector, err := chardet.NewTextDetector().DetectBest(input)
+	detector, err := chardet.NewTextDetector().DetectBest(extra)
 	if err != nil {
 		return
 	}
