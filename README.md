@@ -1,6 +1,6 @@
-# announce-backend
+# samp-servers-api
 
-[![Travis](https://img.shields.io/travis/Southclaws/announce-backend.svg)](https://travis-ci.org/Southclaws/announce-backend)[![Coverage](http://gocover.io/_badge/github.com/Southclaws/announce-backend)](http://gocover.io/github.com/Southclaws/announce-backend)
+[![Travis](https://img.shields.io/travis/Southclaws/samp-servers-api.svg)](https://travis-ci.org/Southclaws/samp-servers-api)[![Coverage](http://gocover.io/_badge/github.com/Southclaws/samp-servers-api)](http://gocover.io/github.com/Southclaws/samp-servers-api)
 
 A SA:MP server listing API service. Anyone can POST a game server address which is added to a periodically queried queue and up-to-date information is provided as a JSON API.
 
@@ -12,19 +12,16 @@ Returns a JSON array of `server` objects. The reason the field names are so shor
 
 #### Query Parameters
 
-- `sort`
-  Either:
-  - `asc`
-  - `desc`
-- `by`
-  Either:
-  - `players`
-  - `rank`
-- `filter`
-  Comma separated set of filter parameters that reduce the amount of results:
-  - `password` - removes passworded servers
-  - `empty` - removes empty servers
-  - `full` - removes full servers
+* `sort` Either:
+    * `asc`
+    * `desc`
+* `by` Either:
+    * `players`
+    * `rank`
+* `filter` Comma separated set of filter parameters that reduce the amount of results:
+    * `password` - removes passworded servers
+    * `empty` - removes empty servers
+    * `full` - removes full servers
 
 #### Result
 
@@ -82,11 +79,6 @@ Owners can define a `description` to help sell their server with more informatio
         "weburl": "samp-lsgw.com",
         "worldtime": "01:00"
     },
-    "pl": [
-        "Serega_Kgerth",
-        "Eduardo_Sanchez",
-        "SuperGamerxD"
-    ],
     "description": "",
     "banner": "",
     "active": true
@@ -96,10 +88,11 @@ Owners can define a `description` to help sell their server with more informatio
 ### POST `http://samp.southcla.ws/v2/server/{ip}`
 
 This is how server owners provide information about their server. This is simply the reverse of the `GET` method on the same endpoint. The response body must be a `Server` object with the only required fields being:
-- `ip` - IP or domain address
-- `hn` - current hostname
-- `pm` - maximum amount of players
-- `gm` - current gamemode name
+
+* `ip` - IP or domain address
+* `hn` - current hostname
+* `pm` - maximum amount of players
+* `gm` - current gamemode name
 
 Aside from that, owners can specify any details they want inside the `ru` (Rules) field such as Discord URL, forum link, donation link, youtube videos, etc.
 
