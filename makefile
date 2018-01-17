@@ -67,7 +67,6 @@ run-prod:
 		-d \
 		--name samp-servers-api \
 		--publish 7790:80 \
-		--network samp-servers \
 		-e BIND=localhost:80 \
 		-e MONGO_USER=samplist \
 		-e MONGO_PASS=$(MONGO_PASS) \
@@ -79,6 +78,7 @@ run-prod:
 		-e MAX_FAILED_QUERY=100 \
 		-e VERIFY_BY_HOST=1 \
 		southclaws/samp-servers:$(VERSION)
+	docker network connect samp-servers samp-servers-api
 
 enter:
 	docker run -it --entrypoint=bash southclaws/samp-servers:$(VERSION)
