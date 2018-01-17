@@ -1,6 +1,6 @@
 VERSION := $(shell cat VERSION)
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
-MONGO_PASS := $(shell cat MONGO_PASS.private)
+-include .env
 
 .PHONY: version
 
@@ -59,6 +59,23 @@ run:
 		-e QUERY_INTERVAL=30 \
 		-e MAX_FAILED_QUERY=100 \
 		-e VERIFY_BY_HOST=0 \
+		southclaws/samp-servers:$(VERSION)
+
+run-prod:
+	-docker rm samp-servers-api
+	docker run \
+		--name samp-servers-api \
+		--network samp-servers \
+		-e BIND=localhost:8080 \
+		-e MONGO_USER=samplist \
+		-e MONGO_PASS=$(MONGO_PASS) \
+		-e MONGO_HOST=mongodb \
+		-e MONGO_PORT=27017 \
+		-e MONGO_NAME=samplist \
+		-e MONGO_COLLECTION=servers \
+		-e QUERY_INTERVAL=60 \
+		-e MAX_FAILED_QUERY=100 \
+		-e VERIFY_BY_HOST=1 \
 		southclaws/samp-servers:$(VERSION)
 
 enter:

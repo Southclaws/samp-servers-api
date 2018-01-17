@@ -6,6 +6,8 @@ import (
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	// loads environment variables from .env
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var version = "master"
