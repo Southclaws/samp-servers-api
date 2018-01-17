@@ -62,6 +62,7 @@ run:
 		southclaws/samp-servers:$(VERSION)
 
 run-prod:
+	-docker stop samp-servers-api
 	-docker rm samp-servers-api
 	docker run \
 		-d \
