@@ -65,7 +65,7 @@ run-prod:
 	-docker rm samp-servers-api
 	docker run \
 		--name samp-servers-api \
-		--publish 7790:80 \
+		--publish 80:7790 \
 		--network samp-servers \
 		-e BIND=localhost:80 \
 		-e MONGO_USER=samplist \
