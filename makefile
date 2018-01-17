@@ -64,6 +64,7 @@ run:
 run-prod:
 	-docker rm samp-servers-api
 	docker run \
+		-d \
 		--name samp-servers-api \
 		--publish 80:7790 \
 		--network samp-servers \
