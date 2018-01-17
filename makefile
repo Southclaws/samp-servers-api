@@ -67,7 +67,7 @@ run-prod:
 	docker run \
 		-d \
 		--name samp-servers-api \
-		--publish 80:7790 \
+		--publish 7790:80 \
 		--restart on-failure:10 \
 		-e BIND=0.0.0.0:80 \
 		-e MONGO_USER=samplist \
