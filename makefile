@@ -67,7 +67,7 @@ run-prod:
 		-d \
 		--name samp-servers-api \
 		--publish 7790:80 \
-		-e BIND=localhost:80 \
+		-e BIND=0.0.0.0:80 \
 		-e MONGO_USER=samplist \
 		-e MONGO_PASS=$(MONGO_PASS) \
 		-e MONGO_HOST=mongodb \
