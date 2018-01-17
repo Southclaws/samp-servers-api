@@ -9,11 +9,10 @@ import (
 	"net"
 	"time"
 
-	"github.com/saintfish/chardet"
-	"golang.org/x/text/encoding/htmlindex"
-
 	"github.com/pkg/errors"
+	"github.com/saintfish/chardet"
 	"go.uber.org/zap"
+	"golang.org/x/text/encoding/htmlindex"
 )
 
 // QueryType represents a query method from the SA:MP set: i, r, c, d, x, p
@@ -40,6 +39,13 @@ type LegacyQuery struct {
 // GetServerLegacyInfo wraps a set of legacy queries and returns a new Server object with the
 // available fields populated.
 func GetServerLegacyInfo(host string) (server Server, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Warn("recovered",
+				zap.Any("result", r))
+		}
+	}()
+
 	lq, err := NewLegacyQuery(host, time.Second*5)
 	if err != nil {
 		return
