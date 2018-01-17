@@ -12,7 +12,7 @@ import (
 
 const (
 	// PageSize controls the default page size of listings
-	PageSize = 1000
+	PageSize = 5000
 	// SortAsc is the ascending sort order for listings
 	SortAsc = "asc"
 	// SortDesc is the descending sort order for listings
