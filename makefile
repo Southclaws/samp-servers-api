@@ -67,6 +67,7 @@ run-prod:
 		-d \
 		--name samp-servers-api \
 		--publish 7790:80 \
+		--restart on-failure:10 \
 		-e BIND=0.0.0.0:80 \
 		-e MONGO_USER=samplist \
 		-e MONGO_PASS=$(MONGO_PASS) \
