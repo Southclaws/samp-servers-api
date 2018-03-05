@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	sampquery "github.com/Southclaws/go-samp-query"
 	"github.com/Southclaws/tickerpool"
 	"go.uber.org/zap"
 	"golang.org/x/sync/syncmap"
@@ -12,9 +13,9 @@ import (
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
 // legacy query API, it then stores the results as standard Server objects, accessible via the API.
 type QueryDaemon struct {
-	QueryInterval time.Duration                // interval between query attempts
-	MaxFailed     int                          // maximum number of failed query attempts before removing address
-	QueryFunction func(string) (Server, error) //  function to use to query servers
+	QueryInterval time.Duration // interval between query attempts
+	MaxFailed     int           // maximum number of failed query attempts before removing address
+	Function      QueryFunction // function for querying servers
 
 	ctx            context.Context
 	app            *App
@@ -23,12 +24,15 @@ type QueryDaemon struct {
 	failed         *tickerpool.TickerPool
 }
 
+// QueryFunction represents a function capable of retreiving server information via the server API
+type QueryFunction func(context.Context, string, bool) (sampquery.Server, error)
+
 // NewQueryDaemon sets up the query daemon and starts the background process
-func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval time.Duration, maxFailed int, queryFunction func(string) (Server, error)) *QueryDaemon {
+func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval time.Duration, maxFailed int, queryFunction QueryFunction) *QueryDaemon {
 	qd := QueryDaemon{
 		QueryInterval:  interval,
 		MaxFailed:      maxFailed,
-		QueryFunction:  queryFunction,
+		Function:       queryFunction,
 		ctx:            ctx,
 		app:            app,
 		failedAttempts: &syncmap.Map{},
@@ -124,7 +128,10 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 	tmp, hasFailed := qd.failedAttempts.Load(address)
 	attempts, _ := tmp.(int)
 
-	server, err := qd.QueryFunction(address)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	serverData, err := qd.Function(ctx, address, true)
 	if err != nil {
 		if hasFailed {
 			if attempts > qd.MaxFailed {
@@ -141,6 +148,24 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 		qd.failedAttempts.Delete(address)
 	}
 	qd.removeFailed(address)
+
+	server := Server{
+		Core: ServerCore{
+			Address:    serverData.Address,
+			Hostname:   serverData.Hostname,
+			Players:    serverData.Players,
+			MaxPlayers: serverData.MaxPlayers,
+			Gamemode:   serverData.Gamemode,
+			Language:   serverData.Language,
+			Password:   serverData.Password,
+		},
+		Rules: serverData.Rules,
+	}
+
+	version, ok := serverData.Rules["version"]
+	if ok {
+		server.Core.Version = version
+	}
 
 	err = qd.app.UpsertServer(server)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Southclaws/go-samp-query"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -37,7 +38,7 @@ func Initialise(config Config) *App {
 
 	// Grab existing addresses from database and pass to the Query Daemon
 	addresses := app.LoadAllAddresses()
-	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, GetServerLegacyInfo)
+	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, sampquery.GetServerInfo)
 
 	// Set up HTTP server
 	app.router = mux.NewRouter().StrictSlash(true)
