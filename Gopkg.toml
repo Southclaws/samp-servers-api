@@ -38,10 +38,6 @@
   version = "0.8.0"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/saintfish/chardet"
-
-[[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.1.4"
 
