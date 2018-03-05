@@ -4,28 +4,12 @@ import (
 	"os"
 	"strconv"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	// loads environment variables from .env
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/kelseyhightower/envconfig"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
-
-var version = "master"
-
-// Config stores app global configuration
-type Config struct {
-	Version         string
-	Bind            string
-	MongoHost       string
-	MongoPort       string
-	MongoName       string
-	MongoUser       string
-	MongoPass       string
-	MongoCollection string
-	QueryInterval   int
-	MaxFailedQuery  int
-	VerifyByHost    bool
-}
 
 var logger *zap.Logger
 
@@ -58,20 +42,28 @@ func init() {
 	)
 }
 
+// Config stores app global configuration
+type Config struct {
+	Bind            string `split_words:"true" required:"true"`
+	MongoHost       string `split_words:"true" required:"true"`
+	MongoPort       string `split_words:"true" required:"true"`
+	MongoName       string `split_words:"true" required:"true"`
+	MongoUser       string `split_words:"true" required:"true"`
+	MongoPass       string `split_words:"true" required:"false"`
+	MongoCollection string `split_words:"true" required:"true"`
+	QueryInterval   int    `split_words:"true" required:"true"`
+	MaxFailedQuery  int    `split_words:"true" required:"true"`
+	VerifyByHost    bool   `split_words:"true" required:"true"`
+}
+
 func main() {
-	config := Config{
-		Version:         version,
-		Bind:            configStrFromEnv("BIND"),
-		MongoHost:       configStrFromEnv("MONGO_HOST"),
-		MongoPort:       configStrFromEnv("MONGO_PORT"),
-		MongoName:       configStrFromEnv("MONGO_NAME"),
-		MongoUser:       configStrFromEnv("MONGO_USER"),
-		MongoPass:       os.Getenv("MONGO_PASS"),
-		MongoCollection: configStrFromEnv("MONGO_COLLECTION"),
-		QueryInterval:   configIntFromEnv("QUERY_INTERVAL"),
-		MaxFailedQuery:  configIntFromEnv("MAX_FAILED_QUERY"),
-		VerifyByHost:    configIntFromEnv("VERIFY_BY_HOST") == 1,
+	config := Config{}
+	err := envconfig.Process("SAMPLIST", &config)
+	if err != nil {
+		logger.Fatal("failed to load configuration",
+			zap.Error(err))
 	}
+
 	app := Initialise(config)
 	app.Start()
 }

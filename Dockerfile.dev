@@ -1,4 +1,0 @@
-FROM scratch
-COPY samp-servers-api /bin/samp-servers-api
-
-ENTRYPOINT ["samp-servers-api"]

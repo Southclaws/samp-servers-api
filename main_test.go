@@ -10,7 +10,6 @@ var app *App
 
 func TestMain(m *testing.M) {
 	config := Config{
-		Version:         "testing",
 		Bind:            "localhost:8080",
 		MongoHost:       "localhost",
 		MongoPort:       "27017",

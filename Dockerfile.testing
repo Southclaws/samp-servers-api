@@ -1,8 +1,0 @@
-FROM golang AS compile
-ADD . /go/src/github.com/Southclaws/samp-servers-api
-RUN apt-get update -y && apt-get install --no-install-recommends -y -q build-essential ca-certificates
-RUN go get github.com/golang/dep/cmd/dep
-WORKDIR /go/src/github.com/Southclaws/samp-servers-api
-RUN dep ensure
-
-ENTRYPOINT [ "make", "test" ]

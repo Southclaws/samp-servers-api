@@ -17,3 +17,6 @@
 
 # node_modules for gql lib
 node_modules/
+
+*.env
+samp-servers-api
