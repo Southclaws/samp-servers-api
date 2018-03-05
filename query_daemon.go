@@ -168,6 +168,13 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 		Rules: serverData.Rules,
 	}
 
+	if server.Core.Players > server.Core.MaxPlayers {
+		return true, nil
+	}
+	if server.Core.MaxPlayers > 1000 {
+		return true, nil
+	}
+
 	version, ok := serverData.Rules["version"]
 	if ok {
 		server.Core.Version = version
