@@ -64,6 +64,12 @@ func (qd *QueryDaemon) Add(address string) {
 		remove, err := qd.query(address)
 		if err != nil {
 			if remove {
+				err = qd.app.MarkInactive(address)
+				if err != nil {
+					logger.Error("failed to mark address as inactive",
+						zap.String("address", address),
+						zap.Error(err))
+				}
 				qd.addFailed(address)
 
 				logger.Debug("failed query too many times",
