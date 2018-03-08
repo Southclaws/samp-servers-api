@@ -1,8 +1,5 @@
 // Place your settings in this file to overwrite default and user settings.
 {
-    "go.testFlags": [
-        "-v",
-        "-race",
-        "-cover"
-    ]
+    "go.testFlags": ["-v", "-race", "-cover"],
+    "prettier.tabWidth": 2
 }
