@@ -248,19 +248,7 @@ func (app *App) UpsertServer(server Server) (err error) {
 
 // MarkInactive marks a server as inactive by setting the `Active` field to false
 func (app *App) MarkInactive(address string) (err error) {
-	info, err := app.collection.Upsert(bson.M{"core.address": address}, Server{Active: false})
-	if err != nil {
-		logger.Error("upsert inactive server failed",
-			zap.String("address", address))
-	} else if info != nil {
-		logger.Debug("upsert inactive server",
-			zap.String("address", address),
-			zap.Int("matched", info.Matched),
-			zap.Int("removed", info.Removed),
-			zap.Int("updated", info.Updated),
-			zap.Any("id", info.UpsertedId))
-	}
-	return
+	return app.collection.Update(bson.M{"core.address": address}, Server{Active: false})
 }
 
 // RemoveServer deletes a server from the database
