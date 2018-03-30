@@ -60,28 +60,30 @@ func NewQueryDaemon(ctx context.Context, app *App, initial []string, interval ti
 
 // Add will add a new address to the TickerPool and query it every
 func (qd *QueryDaemon) Add(address string) {
-	qd.active.Add(address, func() {
-		remove, err := qd.query(address)
-		if err != nil {
-			if remove {
-				err = qd.app.MarkInactive(address)
-				if err != nil {
-					logger.Error("failed to mark address as inactive",
-						zap.String("address", address),
-						zap.Error(err))
-				}
-				qd.addFailed(address)
+	qd.active.Add(address, func() { qd.add(address) })
+}
 
-				logger.Debug("failed query too many times",
-					zap.String("address", address),
-					zap.Error(err))
-			} else {
-				logger.Debug("failed query",
+func (qd *QueryDaemon) add(address string) {
+	remove, err := qd.query(address)
+	if err != nil {
+		if remove {
+			err = qd.app.MarkInactive(address)
+			if err != nil {
+				logger.Error("failed to mark address as inactive",
 					zap.String("address", address),
 					zap.Error(err))
 			}
+			qd.addFailed(address)
+
+			logger.Debug("failed query too many times",
+				zap.String("address", address),
+				zap.Error(err))
+		} else {
+			logger.Debug("failed query",
+				zap.String("address", address),
+				zap.Error(err))
 		}
-	})
+	}
 }
 
 // Remove will remove an address from the query rotation
