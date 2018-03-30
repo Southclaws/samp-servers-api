@@ -35,7 +35,7 @@ func (app *App) Statistics(w http.ResponseWriter, r *http.Request) {
 // GetStatistics returns the current statistics for the server database
 // todo: cache this data
 func (app *App) GetStatistics() (statistics Statistics, err error) {
-	statistics.Servers, err = app.collection.Find(bson.M{}).Count()
+	statistics.Servers, err = app.collection.Find(bson.M{"active": true}).Count()
 	if err != nil {
 		err = errors.Wrap(err, "failed to execute find query on database")
 		return
