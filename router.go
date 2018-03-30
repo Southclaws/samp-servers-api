@@ -40,6 +40,9 @@ func Initialise(config Config) *App {
 	addresses := app.LoadAllAddresses()
 	app.qd = NewQueryDaemon(app.ctx, &app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, sampquery.GetServerInfo)
 
+	// Start a periodic query against the SA:MP official internet list (if it's even online...)
+	app.LegacyListQuery()
+
 	// Set up HTTP server
 	app.router = mux.NewRouter().StrictSlash(true)
 
