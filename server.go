@@ -248,7 +248,7 @@ func (app *App) UpsertServer(server Server) (err error) {
 
 // MarkInactive marks a server as inactive by setting the `Active` field to false
 func (app *App) MarkInactive(address string) (err error) {
-	return app.collection.Update(bson.M{"core.address": address}, Server{Active: false})
+	return app.collection.Update(bson.M{"core.address": address}, bson.M{"$set": bson.M{"active": false}})
 }
 
 // RemoveServer deletes a server from the database
