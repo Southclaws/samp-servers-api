@@ -58,7 +58,7 @@ run-prod:
 		--restart always \
 		--env-file .env \
 		southclaws/samp-servers:$(VERSION)
-	docker network connect samp-servers samp-servers-api
+	docker network connect mongodb samp-servers-api
 
 
 # -
