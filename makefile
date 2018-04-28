@@ -55,7 +55,7 @@ run-prod:
 		--name samp-servers-api \
 		--detach \
 		--publish 7790:80 \
-		--restart on-failure:10 \
+		--restart always \
 		--env-file .env \
 		southclaws/samp-servers:$(VERSION)
 	docker network connect samp-servers samp-servers-api
