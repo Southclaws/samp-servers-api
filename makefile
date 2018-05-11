@@ -34,10 +34,10 @@ test:
 
 
 build:
-	docker build --no-cache -t southclaws/samp-servers:$(VERSION) .
+	docker build --no-cache -t southclaws/samp-servers-api:$(VERSION) .
 
 push:
-	docker push southclaws/samp-servers:$(VERSION)
+	docker push southclaws/samp-servers-api:$(VERSION)
 	
 run:
 	-docker stop samp-servers-api
@@ -46,7 +46,7 @@ run:
 		--name samp-servers-api \
 		--network host \
 		--env-file .env \
-		southclaws/samp-servers:$(VERSION)
+		southclaws/samp-servers-api:$(VERSION)
 
 run-prod:
 	-docker stop samp-servers-api
@@ -57,7 +57,7 @@ run-prod:
 		--publish 7790:80 \
 		--restart always \
 		--env-file .env \
-		southclaws/samp-servers:$(VERSION)
+		southclaws/samp-servers-api:$(VERSION)
 	docker network connect mongodb samp-servers-api
 
 
