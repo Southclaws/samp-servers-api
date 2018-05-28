@@ -8,7 +8,7 @@ as a JSON API.
 
 ## API - Draft `v2`
 
-### GET `http://samp.southcla.ws/v2/servers`
+### GET `https://api.samp-servers.net/v2/servers`
 
 Returns a JSON array of `server` objects. The reason the field names are so
 short is to minimise unnecessary network traffic. There are also only a handful
@@ -57,7 +57,7 @@ the information required to render a row on a list of servers.
 ]
 ```
 
-### GET `http://samp.southcla.ws/v2/server/{ip}`
+### GET `https://api.samp-servers.net/v2/server/{ip}`
 
 Returns a `Server` object for a particular server with more fields filled in.
 This can be used to show a user a more detailed overview of a server they may be
@@ -78,12 +78,11 @@ to an image which can be rendered as part of a server browser implementation.
 {
   "core": {
     "ip": "151.80.108.109:8660",
-    "hn":
-      "\ufffd\ufffd\ufffd\ufffd | LOS SANTOS GANG WARS | \ufffd\ufffd\ufffd\ufffd",
+    "hn": "| LOS SANTOS GANG WARS |",
     "pc": 29,
     "pm": 100,
     "gm": "Gang Wars/TDM/Turfs/mini",
-    "la": "English/Espa\ufffdol",
+    "la": "English/Español",
     "pa": false
   },
   "ru": {
@@ -100,20 +99,41 @@ to an image which can be rendered as part of a server browser implementation.
 }
 ```
 
-### POST `http://samp.southcla.ws/v2/server/{ip}`
+### POST `https://api.samp-servers.net/v2/server/{ip}`
 
 This is how server owners provide information about their server. This is simply
 the reverse of the `GET` method on the same endpoint. The response body must be
 a `Server` object with the only required fields being:
 
-* `ip` - IP or domain address
-* `hn` - current hostname
-* `pm` - maximum amount of players
-* `gm` - current gamemode name
+* `core.ip` - IP or domain address
+* `core.hn` - current hostname
+* `core.pm` - maximum amount of players
+* `core.gm` - current gamemode name
 
 Aside from that, owners can specify any details they want inside the `ru`
 (Rules) field such as Discord URL, forum link, donation link, youtube videos,
-etc.
+etc. For example:
+
+````json
+{
+  "core": {
+    "ip": "151.80.108.109:8660",
+    "hn": "| LOS SANTOS GANG WARS |",
+    "pc": 29,
+    "pm": 100,
+    "gm": "Gang Wars/TDM/Turfs/mini",
+    "la": "English/Español",
+    "pa": false
+  },
+  "ru": {
+    "weburl": "samp-lsgw.com",
+    "discord": "https://discord.gg/hURGKHJ",
+    "teamspeak: "ts.example.com"
+  },
+  "description": "A gang war server set in Los Santos.",
+  "banner": "https://i.imgur.com/Juaezhv.jpg"
+}
+```
 
 Note: when performing a POST to this endpoint, the `{ip}` in the URL and the
 `ip` field in the payload **must** match the IP of the request. For example, if
@@ -122,3 +142,4 @@ request will fail with `400 BAD REQUEST`. This means only the server owner can
 update the records of their own server from the same physical machine/network as
 the actual server. If you use a more complex networking setup that this causes
 problems with, please open an issue and we can work something out.
+````
