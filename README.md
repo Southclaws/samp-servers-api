@@ -114,7 +114,7 @@ Aside from that, owners can specify any details they want inside the `ru`
 (Rules) field such as Discord URL, forum link, donation link, youtube videos,
 etc. For example:
 
-````json
+```json
 {
   "core": {
     "ip": "151.80.108.109:8660",
@@ -142,4 +142,3 @@ request will fail with `400 BAD REQUEST`. This means only the server owner can
 update the records of their own server from the same physical machine/network as
 the actual server. If you use a more complex networking setup that this causes
 problems with, please open an issue and we can work something out.
-````
