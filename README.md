@@ -128,7 +128,7 @@ etc. For example:
   "ru": {
     "weburl": "samp-lsgw.com",
     "discord": "https://discord.gg/hURGKHJ",
-    "teamspeak: "ts.example.com"
+    "teamspeak": "ts.example.com"
   },
   "description": "A gang war server set in Los Santos.",
   "banner": "https://i.imgur.com/Juaezhv.jpg"
