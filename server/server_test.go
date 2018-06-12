@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -9,15 +9,17 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v0"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 func TestServer_Validate(t *testing.T) {
 	tests := []struct {
 		name     string
-		server   *Server
+		server   *types.Server
 		wantErrs []error
 	}{
-	// TODO: Add test cases.
+		// TODO: Add test cases.
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -48,7 +50,7 @@ func TestValidateAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, gotErrs := ValidateAddress(tt.args.address)
+			_, gotErrs := types.ValidateAddress(tt.args.address)
 
 			for i := range gotErrs {
 				assert.Equal(t, errors.Cause(gotErrs[i]).Error(), tt.wantErrs[i])
@@ -85,7 +87,7 @@ func TestApp_ServerSimple(t *testing.T) {
 func TestApp_ServerPOST(t *testing.T) {
 	type args struct {
 		address string
-		server  Server
+		server  types.Server
 	}
 	tests := []struct {
 		name string
@@ -93,8 +95,8 @@ func TestApp_ServerPOST(t *testing.T) {
 	}{
 		{
 			"valid 1",
-			args{"ss.southcla.ws", Server{
-				Core: ServerCore{
+			args{"ss.southcla.ws", types.Server{
+				Core: types.ServerCore{
 					Address:    "ss.southcla.ws",
 					Hostname:   "Scavenge and Survive Official",
 					Players:    4,
@@ -110,8 +112,8 @@ func TestApp_ServerPOST(t *testing.T) {
 		},
 		{
 			"valid 2",
-			args{"s2.example.com", Server{
-				Core: ServerCore{
+			args{"s2.example.com", types.Server{
+				Core: types.ServerCore{
 					Address:    "s2.example.com",
 					Hostname:   "test server 2",
 					Players:    0,
@@ -126,8 +128,8 @@ func TestApp_ServerPOST(t *testing.T) {
 		},
 		{
 			"valid 3",
-			args{"s3.example.com", Server{
-				Core: ServerCore{
+			args{"s3.example.com", types.Server{
+				Core: types.ServerCore{
 					Address:    "s3.example.com",
 					Hostname:   "test server 3",
 					Players:    948,
@@ -142,8 +144,8 @@ func TestApp_ServerPOST(t *testing.T) {
 		},
 		{
 			"valid 4",
-			args{"s4.example.com", Server{
-				Core: ServerCore{
+			args{"s4.example.com", types.Server{
+				Core: types.ServerCore{
 					Address:    "s4.example.com",
 					Hostname:   "test server 4",
 					Players:    50,
@@ -179,10 +181,10 @@ func TestApp_ServerGET(t *testing.T) {
 	tests := []struct {
 		name       string
 		args       args
-		wantServer Server
+		wantServer types.Server
 	}{
-		{"valid", args{"ss.southcla.ws"}, Server{
-			Core: ServerCore{
+		{"valid", args{"ss.southcla.ws"}, types.Server{
+			Core: types.ServerCore{
 				Address:    "ss.southcla.ws",
 				Hostname:   "Scavenge and Survive Official",
 				Players:    4,
@@ -199,7 +201,7 @@ func TestApp_ServerGET(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotServer := Server{}
+			gotServer := types.Server{}
 			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:8080/v2/server/%s", tt.args.address))
 			assert.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode())
@@ -215,13 +217,13 @@ func TestApp_GetServer(t *testing.T) {
 	tests := []struct {
 		name       string
 		args       args
-		wantServer Server
+		wantServer types.Server
 		wantFound  bool
 		wantErr    bool
 	}{
 		{"valid", args{"ss.southcla.ws"},
-			Server{
-				Core: ServerCore{
+			types.Server{
+				Core: types.ServerCore{
 					Address:    "ss.southcla.ws",
 					Hostname:   "Scavenge and Survive Official",
 					Players:    4,
@@ -251,15 +253,15 @@ func TestApp_GetServer(t *testing.T) {
 
 func TestApp_UpsertServer(t *testing.T) {
 	type args struct {
-		server Server
+		server types.Server
 	}
 	tests := []struct {
 		name    string
 		args    args
 		wantErr bool
 	}{
-		{"valid", args{Server{
-			Core: ServerCore{
+		{"valid", args{types.Server{
+			Core: types.ServerCore{
 				Address:    "ss.southcla.ws",
 				Hostname:   "Scavenge and Survive Official",
 				Players:    4,

@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 const (
@@ -28,7 +30,7 @@ const (
 )
 
 // Servers returns a JSON encoded array of available servers
-func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
+func (app *App) serverList(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("getting server list")
 
 	var (
@@ -54,8 +56,8 @@ func (app *App) Servers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetServers returns a slice of Core objects
-func (app *App) GetServers(page, sort, by string, filters []string) (servers []ServerCore, err error) {
-	selected := []Server{}
+func (app *App) GetServers(page, sort, by string, filters []string) (servers []types.ServerCore, err error) {
+	selected := []types.Server{}
 
 	pageNum, err := strconv.Atoi(page)
 	if err != nil {

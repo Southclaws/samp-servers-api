@@ -1,9 +1,11 @@
-package main
+package server
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 func TestApp_GetServers(t *testing.T) {
@@ -16,13 +18,13 @@ func TestApp_GetServers(t *testing.T) {
 	tests := []struct {
 		name        string
 		args        args
-		wantServers []ServerCore
+		wantServers []types.ServerCore
 		wantErr     bool
 	}{
 		{
 			"v no sort",
 			args{"1", "", "", []string{}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
@@ -33,7 +35,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v desc",
 			args{"1", "asc", "", []string{}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true, "0.3.7-R2"},
@@ -44,7 +46,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v pass",
 			args{"1", "", "", []string{"password"}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false, "0.3.7-R2"},
@@ -54,7 +56,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v empty",
 			args{"1", "", "", []string{"empty"}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"s4.example.com", "test server 4", 50, 50, "rivershell", "Polish", true, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
@@ -64,7 +66,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v full",
 			args{"1", "", "", []string{"full"}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false, "0.3.7-R2"},
@@ -74,7 +76,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v pass empty",
 			args{"1", "", "", []string{"password", "empty"}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
 			},
@@ -83,7 +85,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v pass full",
 			args{"1", "", "", []string{"password", "full"}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
 				{"s2.example.com", "test server 2", 0, 100, "Grand Larceny", "English", false, "0.3.7-R2"},
@@ -93,7 +95,7 @@ func TestApp_GetServers(t *testing.T) {
 		{
 			"v empty full",
 			args{"1", "", "", []string{"empty", "full"}},
-			[]ServerCore{
+			[]types.ServerCore{
 				{"s3.example.com", "test server 3", 948, 1000, "Grand Larceny", "English", false, "0.3.7-R2"},
 				{"ss.southcla.ws", "Scavenge and Survive Official", 4, 32, "Scavenge & Survive by Southclaws", "English", false, "0.3.7-R2"},
 			},

@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -24,7 +24,11 @@ func TestMain(m *testing.M) {
 
 	fmt.Println("initialising announce-backend testing mode", config)
 
-	app = Initialise(config)
+	var err error
+	app, err = Initialise(config)
+	if err != nil {
+		panic(err)
+	}
 	go app.Start() // start the server in a goroutine
 
 	ret := m.Run() // run the tests against the server

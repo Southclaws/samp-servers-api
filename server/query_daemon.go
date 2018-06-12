@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"github.com/Southclaws/tickerpool"
 	"go.uber.org/zap"
 	"golang.org/x/sync/syncmap"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // QueryDaemon crawls through a list of server addresses and gathers information about them via the
@@ -157,8 +159,8 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 	}
 	qd.removeFailed(address)
 
-	server := Server{
-		Core: ServerCore{
+	server := types.Server{
+		Core: types.ServerCore{
 			Address:    serverData.Address,
 			Hostname:   serverData.Hostname,
 			Players:    serverData.Players,

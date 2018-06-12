@@ -1,11 +1,11 @@
-package main
+package server
 
 import (
 	"fmt"
 	"time"
 
 	"go.uber.org/zap"
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 )
 
 // ConnectDB simply provides a function to set up a MongoDB connection and perform some checks
