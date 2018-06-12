@@ -10,7 +10,9 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
+	"github.com/Southclaws/samp-servers-api/scraper"
 	"github.com/Southclaws/samp-servers-api/storage"
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // Config stores app global configuration
@@ -33,7 +35,7 @@ type App struct {
 	cancel     context.CancelFunc
 	config     Config
 	db         *storage.Manager
-	qd         *QueryDaemon
+	qd         *scraper.Scraper
 	handlers   map[string][]Route
 	httpServer *http.Server
 }
@@ -65,7 +67,38 @@ func Initialise(config Config) (app *App, err error) {
 		return
 	}
 
-	app.qd = NewQueryDaemon(app.ctx, app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, sampquery.GetServerInfo)
+	app.qd, err = scraper.New(
+		app.ctx,
+		addresses,
+		scraper.Config{
+			time.Second * time.Duration(config.QueryInterval),
+			config.MaxFailedQuery,
+			sampquery.GetServerInfo,
+			func(address string) {
+				errInner := app.db.ArchiveServer(address)
+				if errInner != nil {
+					logger.Error("failed to archive server", zap.Error(err))
+					return
+				}
+			},
+			func(address string) {
+				errInner := app.db.RemoveServer(address)
+				if errInner != nil {
+					logger.Error("failed to remove server", zap.Error(err))
+					return
+				}
+			},
+			func(server types.Server) {
+				errInner := app.db.UpsertServer(server)
+				if errInner != nil {
+					logger.Error("failed to upsert server", zap.Error(err))
+					return
+				}
+			},
+		})
+	if err != nil {
+		return
+	}
 
 	// Start a periodic query against the SA:MP official internet list (if it's even online...)
 	// TODO: errors?

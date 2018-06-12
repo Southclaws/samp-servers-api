@@ -29,8 +29,8 @@ func (mgr *Manager) UpsertServer(server types.Server) (err error) {
 	return
 }
 
-// MarkInactive marks a server as inactive by setting the `Active` field to false
-func (mgr *Manager) MarkInactive(address string) (err error) {
+// ArchiveServer marks a server as inactive by setting the `Active` field to false
+func (mgr *Manager) ArchiveServer(address string) (err error) {
 	return mgr.collection.Update(bson.M{"core.address": address}, bson.M{"$set": bson.M{"active": false}})
 }
 
