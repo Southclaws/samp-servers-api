@@ -14,7 +14,7 @@ func TestApp_GetStatistics(t *testing.T) {
 		PlayersPerServer: 250,
 	}
 
-	gotStatistics, err := app.GetStatistics()
+	gotStatistics, err := app.db.GetStatistics()
 
 	assert.NoError(t, err)
 	assert.Equal(t, wantStatistics, gotStatistics)

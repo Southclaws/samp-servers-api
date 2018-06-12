@@ -9,10 +9,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 
-	"github.com/Southclaws/samp-servers-api/types"
+	"github.com/Southclaws/samp-servers-api/storage"
 )
 
 // Config stores app global configuration
@@ -34,7 +32,7 @@ type App struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 	config     Config
-	collection *mgo.Collection
+	db         *storage.Manager
 	qd         *QueryDaemon
 	handlers   map[string][]Route
 	httpServer *http.Server
@@ -49,14 +47,24 @@ func Initialise(config Config) (app *App, err error) {
 	}
 	app.ctx, app.cancel = context.WithCancel(context.Background())
 
-	// Connect to the database, receive a collection pointer
-	// TODO: return error
-	app.collection = ConnectDB(config)
-	logger.Info("connected to mongodb server")
+	app.db, err = storage.New(storage.Config{
+		MongoHost:       config.MongoHost,
+		MongoPort:       config.MongoPort,
+		MongoName:       config.MongoName,
+		MongoUser:       config.MongoUser,
+		MongoPass:       config.MongoPass,
+		MongoCollection: config.MongoCollection,
+	})
+	if err != nil {
+		return
+	}
 
 	// Grab existing addresses from database and pass to the Query Daemon
-	// TODO: return errors
-	addresses := app.LoadAllAddresses()
+	addresses, err := app.db.LoadAllAddresses()
+	if err != nil {
+		return
+	}
+
 	app.qd = NewQueryDaemon(app.ctx, app, addresses, time.Second*time.Duration(config.QueryInterval), config.MaxFailedQuery, sampquery.GetServerInfo)
 
 	// Start a periodic query against the SA:MP official internet list (if it's even online...)
@@ -134,21 +142,6 @@ func Initialise(config Config) (app *App, err error) {
 func (app *App) Start() error {
 	defer app.cancel()
 	return app.httpServer.ListenAndServe()
-}
-
-// LoadAllAddresses loads all addresses from the database as a slice of strings for synchronisation
-// with the QueryDaemon.
-func (app *App) LoadAllAddresses() (result []string) {
-	allServers := []types.Server{}
-	err := app.collection.Find(bson.M{}).All(&allServers)
-	if err != nil {
-		logger.Fatal("failed to load current addresses for query daemon",
-			zap.Error(err))
-	}
-	for i := range allServers {
-		result = append(result, allServers[i].Core.Address)
-	}
-	return
 }
 
 // WriteError is a utility function for logging a request error and writing a response all in one.

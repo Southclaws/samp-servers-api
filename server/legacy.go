@@ -5,7 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // LegacyListQuery periodically hits the lists.sa-mp.com endpoint to update the new servers list.
@@ -26,13 +29,21 @@ func (app *App) LegacyListQuery() {
 func (app *App) getMasterlist() (err error) {
 	resp, err := http.Get("http://lists.sa-mp.com/0.3.7/servers")
 	if err != nil {
-		return
+		return errors.Wrap(err, "failed to get masterlist")
+	}
+
+	if resp.StatusCode != 200 {
+		return errors.Errorf("unexpected masterlist status %s", resp.Status)
 	}
 
 	count := 0
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
-		address := scanner.Text()
+		address, errs := types.ValidateAddress(scanner.Text())
+		if errs != nil {
+			err = errs[0]
+			return
+		}
 
 		logger.Debug("adding server from legacy masterlist",
 			zap.String("address", address))

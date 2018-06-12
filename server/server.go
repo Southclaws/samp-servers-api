@@ -9,8 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 
 	"github.com/Southclaws/samp-servers-api/types"
 )
@@ -74,10 +72,17 @@ func (app *App) serverPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.UpsertServer(server)
+	err = app.db.UpsertServer(server)
 	if err != nil {
+		logger.Error("failed to upsert server",
+			zap.Error(err))
 		WriteError(w, http.StatusInternalServerError, err)
 	}
+
+	logger.Debug("upsert server",
+		zap.String("address", server.Core.Address))
+
+	app.qd.Add(server.Core.Address)
 }
 
 // serverGet handles responding to a request by server address
@@ -100,7 +105,7 @@ func (app *App) serverGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server, found, err := app.GetServer(address)
+	server, found, err := app.db.GetServer(address)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
 		return
@@ -117,51 +122,4 @@ func (app *App) serverGet(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-}
-
-// GetServer looks up a server via the address
-func (app *App) GetServer(address string) (server types.Server, found bool, err error) {
-	err = app.collection.Find(bson.M{"core.address": address, "active": true}).One(&server)
-	if err == mgo.ErrNotFound {
-		found = false
-		err = nil // the caller does not need to interpret this as an "error"
-	} else if err != nil {
-		return
-	} else {
-		found = true
-	}
-
-	return
-}
-
-// UpsertServer creates or updates a server object in the database, implicitly sets `Active` to true
-func (app *App) UpsertServer(server types.Server) (err error) {
-	server.Active = true
-	info, err := app.collection.Upsert(bson.M{"core.address": server.Core.Address}, server)
-	if err != nil {
-		logger.Error("upsert server failed",
-			zap.String("address", server.Core.Address))
-
-	} else if info != nil {
-		logger.Debug("upsert server",
-			zap.String("address", server.Core.Address),
-			zap.Int("matched", info.Matched),
-			zap.Int("removed", info.Removed),
-			zap.Int("updated", info.Updated),
-			zap.Any("id", info.UpsertedId))
-
-		app.qd.Add(server.Core.Address)
-	}
-
-	return
-}
-
-// MarkInactive marks a server as inactive by setting the `Active` field to false
-func (app *App) MarkInactive(address string) (err error) {
-	return app.collection.Update(bson.M{"core.address": address}, bson.M{"$set": bson.M{"active": false}})
-}
-
-// RemoveServer deletes a server from the database
-func (app *App) RemoveServer(address string) (err error) {
-	return app.collection.Remove(bson.M{"core.address": address})
 }

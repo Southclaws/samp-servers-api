@@ -69,7 +69,7 @@ func (qd *QueryDaemon) add(address string) {
 	remove, err := qd.query(address)
 	if err != nil {
 		if remove {
-			err = qd.app.MarkInactive(address)
+			err = qd.app.db.MarkInactive(address)
 			if err != nil {
 				logger.Error("failed to mark address as inactive",
 					zap.String("address", address),
@@ -94,7 +94,7 @@ func (qd *QueryDaemon) Remove(address string) {
 		qd.failedAttempts.Delete(address)
 		qd.active.Remove(address)
 
-		err := qd.app.RemoveServer(address)
+		err := qd.app.db.RemoveServer(address)
 		if err != nil {
 			logger.Warn("failed to remove server",
 				zap.String("address", address),
@@ -184,7 +184,7 @@ func (qd *QueryDaemon) query(address string) (remove bool, err error) {
 		server.Core.Version = version
 	}
 
-	err = qd.app.UpsertServer(server)
+	err = qd.app.db.UpsertServer(server)
 	if err != nil {
 		logger.Warn("QueryDaemon failed to upsert",
 			zap.Error(err))

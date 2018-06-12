@@ -243,7 +243,7 @@ func TestApp_GetServer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotServer, gotFound, err := app.GetServer(tt.args.address)
+			gotServer, gotFound, err := app.db.GetServer(tt.args.address)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantServer, gotServer)
 			assert.Equal(t, tt.wantFound, gotFound)
@@ -277,7 +277,7 @@ func TestApp_UpsertServer(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := app.UpsertServer(tt.args.server); (err != nil) != tt.wantErr {
+			if err := app.db.UpsertServer(tt.args.server); (err != nil) != tt.wantErr {
 				t.Errorf("App.UpsertServer() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
