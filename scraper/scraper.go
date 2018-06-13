@@ -159,9 +159,8 @@ func (daemon *Scraper) query(address string) (remove bool, err error) {
 	version, ok := serverData.Rules["version"]
 	if ok {
 		server.Core.Version = version
-	} //
-	//
-	daemon.config.OnRequestUpdate(server) //
+	}
+	daemon.config.OnRequestUpdate(server)
 
 	return false, nil
 }

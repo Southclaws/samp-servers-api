@@ -1,14 +1,15 @@
-package server
+package main
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/Southclaws/samp-servers-api/server"
 	"github.com/Southclaws/samp-servers-api/types"
 )
 
-var app *App
+var app *server.App
 
 func TestMain(m *testing.M) {
 	config := types.Config{
@@ -27,7 +28,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("initialising announce-backend testing mode", config)
 
 	var err error
-	app, err = Initialise(config)
+	app, err = server.Initialise(config)
 	if err != nil {
 		panic(err)
 	}

@@ -1,3 +1,4 @@
+// Package v2 implements version 2 of the public API
 package v2
 
 import (

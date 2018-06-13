@@ -23,7 +23,7 @@ func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 
 	address := string(raw)
 
-	normalised, errs := types.ValidateAddress(address)
+	normalised, errs := types.AddressFromString(address)
 	if errs != nil {
 		WriteErrors(w, http.StatusBadRequest, errs)
 		return
@@ -84,7 +84,7 @@ func (v *V2) serverGet(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	_, errs := types.ValidateAddress(address)
+	_, errs := types.AddressFromString(address)
 	if errs != nil {
 		WriteErrors(w, http.StatusBadRequest, errs)
 		return

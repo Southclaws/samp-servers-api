@@ -1,65 +1,17 @@
-package server
+package main
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/resty.v0"
 
 	"github.com/Southclaws/samp-servers-api/types"
 )
 
-func TestServer_Validate(t *testing.T) {
-	tests := []struct {
-		name     string
-		server   *types.Server
-		wantErrs []error
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if gotErrs := tt.server.Validate(); !reflect.DeepEqual(gotErrs, tt.wantErrs) {
-				t.Errorf("Server.Validate() = %v, want %v", gotErrs, tt.wantErrs)
-			}
-		})
-	}
-}
-
-func TestValidateAddress(t *testing.T) {
-	type args struct {
-		address string
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wanrAddr string
-		wantErrs []string
-	}{
-		{"valid", args{"192.168.1.2"}, "samp://192.168.1.2:7777", nil},
-		{"valid.port", args{"192.168.1.2:7777"}, "samp://192.168.1.2:7777", nil},
-		{"valid.scheme", args{"samp://192.168.1.2"}, "samp://192.168.1.2:7777", nil},
-		{"invalid.empty", args{""}, "", []string{"address is empty"}},
-		{"invalid.port", args{"192.168.1.2:port"}, "", []string{"invalid port 'port' specified"}},
-		{"invalid.scheme", args{"http://192.168.1.2"}, "", []string{"address contains invalid scheme 'http', must be either empty or 'samp://'"}},
-		{"invalid.user", args{"user:pass@192.168.1.2"}, "", []string{"address contains a user:password component"}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			_, gotErrs := types.ValidateAddress(tt.args.address)
-
-			for i := range gotErrs {
-				assert.Equal(t, errors.Cause(gotErrs[i]).Error(), tt.wantErrs[i])
-			}
-		})
-	}
-}
-
-func TestApp_ServerSimple(t *testing.T) {
+func TestAPI_ServerPostAddress(t *testing.T) {
 	type args struct {
 		address string
 	}
@@ -84,7 +36,7 @@ func TestApp_ServerSimple(t *testing.T) {
 	time.Sleep(time.Second)
 }
 
-func TestApp_ServerPOST(t *testing.T) {
+func TestAPI_ServerPost(t *testing.T) {
 	type args struct {
 		address string
 		server  types.Server
@@ -174,7 +126,7 @@ func TestApp_ServerPOST(t *testing.T) {
 	time.Sleep(time.Second)
 }
 
-func TestApp_ServerGET(t *testing.T) {
+func TestAPI_ServerGet(t *testing.T) {
 	type args struct {
 		address string
 	}
@@ -206,80 +158,6 @@ func TestApp_ServerGET(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode())
 			assert.Equal(t, tt.wantServer, gotServer)
-		})
-	}
-}
-
-func TestApp_GetServer(t *testing.T) {
-	type args struct {
-		address string
-	}
-	tests := []struct {
-		name       string
-		args       args
-		wantServer types.Server
-		wantFound  bool
-		wantErr    bool
-	}{
-		{"valid", args{"ss.southcla.ws"},
-			types.Server{
-				Core: types.ServerCore{
-					Address:    "ss.southcla.ws",
-					Hostname:   "Scavenge and Survive Official",
-					Players:    4,
-					MaxPlayers: 32,
-					Gamemode:   "Scavenge & Survive by Southclaws",
-					Language:   "English",
-					Password:   false,
-				},
-				Rules:       map[string]string{"mapname": "San Androcalypse"},
-				Description: "Scavenge and Survive is a very fun server!",
-				Banner:      "https://i.imgur.com/o13jh8h",
-				Active:      true,
-			},
-			true,
-			false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotServer, gotFound, err := app.db.GetServer(tt.args.address)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.wantServer, gotServer)
-			assert.Equal(t, tt.wantFound, gotFound)
-		})
-	}
-}
-
-func TestApp_UpsertServer(t *testing.T) {
-	type args struct {
-		server types.Server
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{"valid", args{types.Server{
-			Core: types.ServerCore{
-				Address:    "ss.southcla.ws",
-				Hostname:   "Scavenge and Survive Official",
-				Players:    4,
-				MaxPlayers: 32,
-				Gamemode:   "Scavenge & Survive by Southclaws",
-				Language:   "English",
-				Password:   false,
-			},
-			Rules:       map[string]string{"mapname": "San Androcalypse"},
-			Description: "Scavenge and Survive is a very fun server!",
-			Banner:      "https://i.imgur.com/o13jh8h",
-		}}, false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := app.db.UpsertServer(tt.args.server); (err != nil) != tt.wantErr {
-				t.Errorf("App.UpsertServer() error = %v, wantErr %v", err, tt.wantErr)
-			}
 		})
 	}
 }

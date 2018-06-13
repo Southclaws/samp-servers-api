@@ -1,14 +1,13 @@
-package server
+package storage
 
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/Southclaws/samp-servers-api/types"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestApp_GetServers(t *testing.T) {
+func TestManager_GetServers(t *testing.T) {
 	type args struct {
 		page   int
 		sort   types.SortOrder
@@ -104,7 +103,7 @@ func TestApp_GetServers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotServers, err := app.db.GetServers(tt.args.page, tt.args.sort, tt.args.by, tt.args.filter)
+			gotServers, err := mgr.GetServers(tt.args.page, tt.args.sort, tt.args.by, tt.args.filter)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.wantServers, gotServers)
 		})

@@ -29,8 +29,6 @@ func (app *App) LegacyListQuery() {
 	}
 }
 
-func FixThis() {}
-
 func (app *App) getMasterlist() (err error) {
 	resp, err := http.Get("http://lists.sa-mp.com/0.3.7/servers")
 	if err != nil {
@@ -43,8 +41,8 @@ func (app *App) getMasterlist() (err error) {
 
 	count := 0
 	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() && count < 5 {
-		address, errs := types.ValidateAddress(scanner.Text())
+	for scanner.Scan() {
+		address, errs := types.AddressFromString(scanner.Text())
 		if errs != nil {
 			err = errs[0]
 			return

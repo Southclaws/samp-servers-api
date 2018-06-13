@@ -1,4 +1,4 @@
-package server
+package storage
 
 import (
 	"testing"
@@ -7,14 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestApp_GetStatistics(t *testing.T) {
+func TestManager_GetStatistics(t *testing.T) {
 	wantStatistics := types.Statistics{
 		Servers:          4,
 		Players:          1002,
 		PlayersPerServer: 250,
 	}
 
-	gotStatistics, err := app.db.GetStatistics()
+	gotStatistics, err := mgr.GetStatistics()
 
 	assert.NoError(t, err)
 	assert.Equal(t, wantStatistics, gotStatistics)
