@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/Southclaws/go-samp-query"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
+	sampquery "github.com/Southclaws/go-samp-query"
 	"github.com/Southclaws/samp-servers-api/scraper"
 	"github.com/Southclaws/samp-servers-api/server/v2"
 	"github.com/Southclaws/samp-servers-api/storage"
@@ -95,6 +95,11 @@ func Initialise(config types.Config) (app *App, err error) {
 				zap.String("method", route.Method),
 				zap.String("path", path.Join(name, route.Path)))
 		}
+
+		router.Methods("GET").
+			Path(path.Join("/", name, "docs")).
+			Name("docs").
+			Handler(docsWrapper(handler))
 	}
 
 	app.httpServer = &http.Server{

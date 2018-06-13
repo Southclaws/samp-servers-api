@@ -25,38 +25,57 @@ func Init(Storage *storage.Manager, Scraper *scraper.Scraper, Config types.Confi
 	}
 }
 
+// Version returns the route group version name
+func (v *V2) Version() string { return "v2" }
+
 // Routes returns the version routes
 func (v *V2) Routes() []types.Route {
 	return []types.Route{
 		{
-			Name:    "serverAdd",
-			Path:    "/server",
-			Method:  "POST",
-			Handler: v.serverAdd,
+			Name:        "serverAdd",
+			Path:        "/server/{address}",
+			Method:      "POST",
+			Description: `Add a server to the index using just the IP address. This endpoint requires no body and no additional information. The IP address is added to an internal queue and will be queried periodically for information via the legacy server API. This allows any server to be added with the basic information provided by SA:MP itself.`,
+			Accepts:     nil,
+			Returns:     nil,
+			Handler:     v.serverAdd,
 		},
 		{
-			Name:    "serverPost",
-			Path:    "/server/{address}",
-			Method:  "POST",
-			Handler: v.serverPost,
+			Name:        "serverPost",
+			Path:        "/server",
+			Method:      "POST",
+			Description: `Provide additional information for a server such as a description and a banner image. This requires a body to be posted which contains information for the server.`,
+			Accepts:     types.Server{}.Example(),
+			Returns:     nil,
+			Handler:     v.serverPost,
 		},
 		{
-			Name:    "serverGet",
-			Path:    "/server/{address}",
-			Method:  "GET",
-			Handler: v.serverGet,
+			Name:        "serverGet",
+			Path:        "/server/{address}",
+			Method:      "GET",
+			Description: `Returns a full server object using the specified address.`,
+			Accepts:     nil,
+			Returns:     types.Server{}.Example(),
+			Handler:     v.serverGet,
 		},
 		{
-			Name:    "serverList",
-			Path:    "/servers",
-			Method:  "GET",
-			Handler: v.serverList,
+			Name:        "serverList",
+			Path:        "/servers",
+			Method:      "GET",
+			Description: "Returns a list of servers based on the specified query parameters. Supported query parameters are: `page` `sort` `by` `filters`.",
+			Params:      types.ServerListParams{}.Example(),
+			Accepts:     nil,
+			Returns:     []types.ServerCore{types.Server{}.Example().Core, types.Server{}.Example().Core, types.Server{}.Example().Core},
+			Handler:     v.serverList,
 		},
 		{
-			Name:    "serverStats",
-			Path:    "/stats",
-			Method:  "GET",
-			Handler: v.serverStats,
+			Name:        "serverStats",
+			Path:        "/stats",
+			Method:      "GET",
+			Description: `Returns a some statistics of the server index.`,
+			Accepts:     nil,
+			Returns:     types.Statistics{}.Example(),
+			Handler:     v.serverStats,
 		},
 	}
 }

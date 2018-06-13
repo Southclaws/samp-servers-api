@@ -1,5 +1,11 @@
 package types
 
+import (
+	"net/url"
+
+	"github.com/dyninc/qstring"
+)
+
 // -
 // Pagination
 // -
@@ -55,4 +61,19 @@ type ServerListParams struct {
 	Sort    SortOrder
 	By      SortColumn
 	Filters []FilterAttribute
+}
+
+// Example returns an example of ServerListParams in url.Values format
+func (slp ServerListParams) Example() (result url.Values) {
+	// nolint
+	result, err := qstring.Marshal(&ServerListParams{
+		Page:    2,
+		Sort:    SortAsc,
+		By:      ByPlayers,
+		Filters: []FilterAttribute{FilterFull, FilterPassword},
+	})
+	if err != nil {
+		panic(err)
+	}
+	return
 }

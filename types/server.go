@@ -33,3 +33,30 @@ func (server *Server) Validate() (errs []error) {
 
 	return
 }
+
+// Example returns an example of Server
+func (server Server) Example() Server {
+	return Server{
+		Core: ServerCore{
+			Address:    "127.0.0.1:7777",
+			Hostname:   "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+			Players:    32,
+			MaxPlayers: 128,
+			Gamemode:   "Grand Larceny",
+			Language:   "English",
+			Password:   false,
+			Version:    "0.3.7-R2",
+		},
+		Rules: map[string]string{
+			"lagcomp":   "On",
+			"mapname":   "San Andreas",
+			"version":   "0.3.7-R2",
+			"weather":   "10",
+			"weburl":    "www.sa-mp.com",
+			"worldtime": "10:00",
+		},
+		Description: "An awesome server! Come and play with us.",
+		Banner:      "https://i.imgur.com/Juaezhv.jpg",
+		Active:      true,
+	}
+}
