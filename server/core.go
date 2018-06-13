@@ -9,9 +9,10 @@ import (
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
-	sampquery "github.com/Southclaws/go-samp-query"
+	"github.com/Southclaws/go-samp-query"
 	"github.com/Southclaws/samp-servers-api/scraper"
 	"github.com/Southclaws/samp-servers-api/server/v2"
+	"github.com/Southclaws/samp-servers-api/server/v3"
 	"github.com/Southclaws/samp-servers-api/storage"
 	"github.com/Southclaws/samp-servers-api/types"
 )
@@ -74,6 +75,7 @@ func Initialise(config types.Config) (app *App, err error) {
 
 	app.handlers = map[string]types.RouteHandler{
 		"v2": v2.Init(app.db, app.qd, config),
+		"v3": v3.Init(app.db, app.qd, config),
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
