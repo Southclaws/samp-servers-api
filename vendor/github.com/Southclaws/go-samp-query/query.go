@@ -227,6 +227,9 @@ func (query *Query) GetInfo(ctx context.Context, attemptDecode bool) (server Ser
 	if attemptDecode {
 		server.Gamemode = attemptDecodeANSI(gamemodeRaw, guessHelper)
 		server.Hostname = attemptDecodeANSI(hostnameRaw, guessHelper)
+	} else {
+		server.Gamemode = string(gamemodeRaw)
+		server.Hostname = string(hostnameRaw)
 	}
 
 	if languageLen > 0 && attemptDecode {
