@@ -1,4 +1,4 @@
-package server
+package v2
 
 import (
 	"encoding/json"
@@ -8,10 +8,8 @@ import (
 )
 
 // serverStats returns a set of statistics about the indexed servers
-func (app *App) serverStats(w http.ResponseWriter, r *http.Request) {
-	logger.Debug("getting listing statistics")
-
-	stats, err := app.db.GetStatistics()
+func (v *V2) serverStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := v.Storage.GetStatistics()
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 	}

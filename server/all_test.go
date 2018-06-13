@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 var app *App
 
 func TestMain(m *testing.M) {
-	config := Config{
+	config := types.Config{
 		Bind:            "localhost:8080",
 		MongoHost:       "localhost",
 		MongoPort:       "27017",

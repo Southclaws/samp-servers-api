@@ -69,8 +69,17 @@ run-prod:
 mongodb:
 	-docker stop mongodb
 	-docker rm mongodb
+	-docker stop express
+	-docker rm express
 	docker run \
 		--name mongodb \
-		-p 27017:27017 \
-		-d \
+		--publish 27017:27017 \
+		--detach \
 		mongo
+	sleep 5
+	docker run \
+		--name express \
+		--publish 8081:8081 \
+		--link mongodb:mongo \
+		--detach \
+		mongo-express

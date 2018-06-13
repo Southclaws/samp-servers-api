@@ -1,4 +1,4 @@
-package server
+package v2
 
 import (
 	"encoding/json"
@@ -8,14 +8,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 
 	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // serverAdd handles "simple" posts where the only data is the server address which is passed to
 // the QueryDaemon which handles pulling the rest of the information from the legacy query API.
-func (app *App) serverAdd(w http.ResponseWriter, r *http.Request) {
+func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 	raw, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
@@ -30,11 +29,11 @@ func (app *App) serverAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.qd.Add(normalised)
+	v.Scraper.Add(normalised)
 }
 
 // serverPost handles posting a server object
-func (app *App) serverPost(w http.ResponseWriter, r *http.Request) {
+func (v *V2) serverPost(w http.ResponseWriter, r *http.Request) {
 	address, ok := mux.Vars(r)["address"]
 	if !ok {
 		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
@@ -42,17 +41,13 @@ func (app *App) serverPost(w http.ResponseWriter, r *http.Request) {
 
 	from := strings.Split(r.RemoteAddr, ":")[0]
 
-	if app.config.VerifyByHost {
+	if v.Config.VerifyByHost {
 		addressIP := strings.Split(address, ":")[0]
 		if from != addressIP {
 			WriteError(w, http.StatusBadRequest, errors.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
 			return
 		}
 	}
-
-	logger.Debug("posting server",
-		zap.String("address", address),
-		zap.String("from", from))
 
 	server := types.Server{}
 	err := json.NewDecoder(r.Body).Decode(&server)
@@ -72,32 +67,22 @@ func (app *App) serverPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.db.UpsertServer(server)
+	err = v.Storage.UpsertServer(server)
 	if err != nil {
-		logger.Error("failed to upsert server",
-			zap.Error(err))
 		WriteError(w, http.StatusInternalServerError, err)
 	}
 
-	logger.Debug("upsert server",
-		zap.String("address", server.Core.Address))
-
-	app.qd.Add(server.Core.Address)
+	v.Scraper.Add(server.Core.Address)
 }
 
 // serverGet handles responding to a request by server address
-func (app *App) serverGet(w http.ResponseWriter, r *http.Request) {
+func (v *V2) serverGet(w http.ResponseWriter, r *http.Request) {
 	address, ok := mux.Vars(r)["address"]
 	if !ok {
 		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
 	}
 
-	logger.Debug("getting server",
-		zap.String("address", address))
-
-	var (
-		err error
-	)
+	var err error
 
 	_, errs := types.ValidateAddress(address)
 	if errs != nil {
@@ -105,7 +90,7 @@ func (app *App) serverGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server, found, err := app.db.GetServer(address)
+	server, found, err := v.Storage.GetServer(address)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
 		return

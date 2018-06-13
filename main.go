@@ -6,10 +6,11 @@ import (
 	"github.com/kelseyhightower/envconfig"
 
 	"github.com/Southclaws/samp-servers-api/server"
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 func main() {
-	config := server.Config{}
+	config := types.Config{}
 	err := envconfig.Process("SAMPLIST", &config)
 	if err != nil {
 		panic(err)

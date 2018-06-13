@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
 
@@ -12,10 +14,10 @@ func (mgr *Manager) GetServers(pageNum int, sort types.SortOrder, by types.SortC
 	selected := []types.Server{}
 
 	if pageNum <= 0 {
-		err = errors.Errorf("invalid 'page' value '%d': cannot be negative or zero", pageNum)
-		return
+		pageNum = 0
+	} else {
+		pageNum = pageNum - 1 // subtract 1 so 1 becomes 0, "page 1" makes more sense to users
 	}
-	pageNum = pageNum - 1 // subtract 1 so 1 becomes 0, "page 1" makes more sense to users
 
 	var sortBy types.SortOrder
 
@@ -59,6 +61,8 @@ func (mgr *Manager) GetServers(pageNum int, sort types.SortOrder, by types.SortC
 			}
 		}
 	}
+
+	fmt.Println(query, sortBy, pageNum)
 
 	err = mgr.collection.
 		Find(query).

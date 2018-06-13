@@ -13,18 +13,23 @@ import (
 
 // LegacyListQuery periodically hits the lists.sa-mp.com endpoint to update the new servers list.
 func (app *App) LegacyListQuery() {
-	app.getMasterlist()
-	go func() {
-		ticker := time.NewTicker(time.Minute)
-		for range ticker.C {
-			err := app.getMasterlist()
-			if err != nil {
-				logger.Error("failed to get lists.sa-mp.com",
-					zap.Error(err))
-			}
+	err := app.getMasterlist()
+	if err != nil {
+		logger.Error("failed to get lists.sa-mp.com",
+			zap.Error(err))
+	}
+
+	ticker := time.NewTicker(time.Hour)
+	for range ticker.C {
+		err = app.getMasterlist()
+		if err != nil {
+			logger.Error("failed to get lists.sa-mp.com",
+				zap.Error(err))
 		}
-	}()
+	}
 }
+
+func FixThis() {}
 
 func (app *App) getMasterlist() (err error) {
 	resp, err := http.Get("http://lists.sa-mp.com/0.3.7/servers")
@@ -38,7 +43,7 @@ func (app *App) getMasterlist() (err error) {
 
 	count := 0
 	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
+	for scanner.Scan() && count < 5 {
 		address, errs := types.ValidateAddress(scanner.Text())
 		if errs != nil {
 			err = errs[0]
