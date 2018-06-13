@@ -6,139 +6,157 @@ A SA:MP server listing API service. Anyone can POST a game server address which
 is added to a periodically queried queue and up-to-date information is provided
 as a JSON API.
 
-## API - Draft `v2`
+---
 
-### GET `https://api.samp-servers.net/v2/servers`
+# v2
 
-Returns a JSON array of `server` objects. The reason the field names are so
-short is to minimise unnecessary network traffic. There are also only a handful
-of fields required for a list, so properties such as the rules list and the
-players are omitted from this response.
+This is an automatically generated documentation page for the v2 API endpoints.
 
-#### Query Parameters
+## serverAdd
 
-* `sort` Either:
-  * `asc`
-  * `desc`
-* `by` Either:
-  * `players`
-  * `rank`
-* `filter` Comma separated set of filter parameters that reduce the amount of
-  results:
-  * `password` - removes passworded servers
-  * `empty` - removes empty servers
-  * `full` - removes full servers
+`POST`: `/v2/server/{address}`
 
-#### Result
+Add a server to the index using just the IP address. This endpoint requires no
+body and no additional information. The IP address is added to an internal queue
+and will be queried periodically for information via the legacy server API. This
+allows any server to be added with the basic information provided by SA:MP
+itself.
 
-The result is a JSON array of `ServerCore` objects. A `ServerCore` includes just
-the information required to render a row on a list of servers.
+## serverPost
 
-```json
-[
-  {
-    "ip": "sa-arp.net:7777",
-    "hn": "[1994] SA Advanced Role-Play   (First Person)",
-    "pc": 5,
-    "pm": 160,
-    "gm": "SA:ARP v3.2.1 r14 (Roleplay)",
-    "la": "All (English)",
-    "pa": false
-  },
-  {
-    "ip": "server.redcountyrp.com:7777",
-    "hn": "Red County Roleplay",
-    "pc": 104,
-    "pm": 150,
-    "gm": "RC-RP 2.5.2 R1",
-    "la": "English",
-    "pa": false
-  }
-]
-```
+`POST`: `/v2/server`
 
-### GET `https://api.samp-servers.net/v2/server/{ip}`
+Provide additional information for a server such as a description and a banner
+image. This requires a body to be posted which contains information for the
+server.
 
-Returns a `Server` object for a particular server with more fields filled in.
-This can be used to show a user a more detailed overview of a server they may be
-interested in while only requesting the information when it's needed.
-
-#### Result
-
-The result includes the `core` object used for rendering the server row on a
-list as well as additional information such as the players, the rules and some
-new fields made possible by this project offering more customisation for server
-owners.
-
-Owners can define a `description` to help sell their server with more
-information about what's offered and a `banner` can be specified which is a URL
-to an image which can be rendered as part of a server browser implementation.
+### Accepts
 
 ```json
 {
   "core": {
-    "ip": "151.80.108.109:8660",
-    "hn": "| LOS SANTOS GANG WARS |",
-    "pc": 29,
-    "pm": 100,
-    "gm": "Gang Wars/TDM/Turfs/mini",
-    "la": "English/Español",
-    "pa": false
+    "ip": "127.0.0.1:7777",
+    "hn":
+      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "pc": 32,
+    "pm": 128,
+    "gm": "Grand Larceny",
+    "la": "English",
+    "pa": false,
+    "vn": "0.3.7-R2"
   },
   "ru": {
     "lagcomp": "On",
     "mapname": "San Andreas",
     "version": "0.3.7-R2",
-    "weather": "12",
-    "weburl": "samp-lsgw.com",
-    "worldtime": "01:00"
+    "weather": "10",
+    "weburl": "www.sa-mp.com",
+    "worldtime": "10:00"
   },
-  "description": "",
-  "banner": "",
+  "description": "An awesome server! Come and play with us.",
+  "banner": "https://i.imgur.com/Juaezhv.jpg",
   "active": true
 }
 ```
 
-### POST `https://api.samp-servers.net/v2/server/{ip}`
+## serverGet
 
-This is how server owners provide information about their server. This is simply
-the reverse of the `GET` method on the same endpoint. The response body must be
-a `Server` object with the only required fields being:
+`GET`: `/v2/server/{address}`
 
-* `core.ip` - IP or domain address
-* `core.hn` - current hostname
-* `core.pm` - maximum amount of players
-* `core.gm` - current gamemode name
+Returns a full server object using the specified address.
 
-Aside from that, owners can specify any details they want inside the `ru`
-(Rules) field such as Discord URL, forum link, donation link, youtube videos,
-etc. For example:
+### Returns
 
 ```json
 {
   "core": {
-    "ip": "151.80.108.109:8660",
-    "hn": "| LOS SANTOS GANG WARS |",
-    "pc": 29,
-    "pm": 100,
-    "gm": "Gang Wars/TDM/Turfs/mini",
-    "la": "English/Español",
-    "pa": false
+    "ip": "127.0.0.1:7777",
+    "hn":
+      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "pc": 32,
+    "pm": 128,
+    "gm": "Grand Larceny",
+    "la": "English",
+    "pa": false,
+    "vn": "0.3.7-R2"
   },
   "ru": {
-    "weburl": "samp-lsgw.com",
-    "discord": "https://discord.gg/hURGKHJ",
-    "teamspeak": "ts.example.com"
+    "lagcomp": "On",
+    "mapname": "San Andreas",
+    "version": "0.3.7-R2",
+    "weather": "10",
+    "weburl": "www.sa-mp.com",
+    "worldtime": "10:00"
   },
-  "description": "A gang war server set in Los Santos.",
-  "banner": "https://i.imgur.com/Juaezhv.jpg"
+  "description": "An awesome server! Come and play with us.",
+  "banner": "https://i.imgur.com/Juaezhv.jpg",
+  "active": true
 }
 ```
 
-Note: when performing a POST to this endpoint, the `{ip}` in the URL and the
-`ip` field in the payload **must** match the IP of the request. For example, if
-you try to POST to `/v2/server/100.0.0.1` from the network `100.0.0.2` the
-request will fail with `400 BAD REQUEST`. This means only the server owner can
-update the records of their own server from the same physical machine/network as
-the actual server. If you use a more complex networking setup that this causes
-problems with, please open an issue and we can work something out.
+## serverList
+
+`GET`: `/v2/servers`
+
+Returns a list of servers based on the specified query parameters. Supported
+query parameters are: `page` `sort` `by` `filters`.
+
+### Query parameters
+
+Example: `by=player&filters=full&filters=password&page=2&sort=asc`
+
+### Returns
+
+```json
+[
+  {
+    "ip": "127.0.0.1:7777",
+    "hn":
+      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "pc": 32,
+    "pm": 128,
+    "gm": "Grand Larceny",
+    "la": "English",
+    "pa": false,
+    "vn": "0.3.7-R2"
+  },
+  {
+    "ip": "127.0.0.1:7777",
+    "hn":
+      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "pc": 32,
+    "pm": 128,
+    "gm": "Grand Larceny",
+    "la": "English",
+    "pa": false,
+    "vn": "0.3.7-R2"
+  },
+  {
+    "ip": "127.0.0.1:7777",
+    "hn":
+      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "pc": 32,
+    "pm": 128,
+    "gm": "Grand Larceny",
+    "la": "English",
+    "pa": false,
+    "vn": "0.3.7-R2"
+  }
+]
+```
+
+## serverStats
+
+`GET`: `/v2/stats`
+
+Returns a some statistics of the server index.
+
+### Returns
+
+```json
+{
+  "servers": 1000,
+  "players": 10000,
+  "players_per_server": 10
+}
+```
