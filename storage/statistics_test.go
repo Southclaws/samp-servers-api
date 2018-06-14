@@ -3,8 +3,9 @@ package storage
 import (
 	"testing"
 
-	"github.com/Southclaws/samp-servers-api/types"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 func TestManager_GetStatistics(t *testing.T) {

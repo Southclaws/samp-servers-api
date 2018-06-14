@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/Southclaws/samp-servers-api/types"
 	"go.uber.org/zap"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 func (app *App) onRequestArchive(address string) {

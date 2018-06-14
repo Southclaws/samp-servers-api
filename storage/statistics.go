@@ -1,9 +1,10 @@
 package storage
 
 import (
-	"github.com/Southclaws/samp-servers-api/types"
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // GetStatistics returns the current statistics for the server database

@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/Southclaws/go-samp-query"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
-	"github.com/Southclaws/go-samp-query"
 	"github.com/Southclaws/samp-servers-api/scraper"
 	"github.com/Southclaws/samp-servers-api/server/v2"
 	"github.com/Southclaws/samp-servers-api/server/v3"
