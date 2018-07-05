@@ -14,6 +14,8 @@ func (v *V3) serverStats(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 	}
 
+	stats.Metrics = v.Metrics.GetValues()
+
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(stats)
 	if err != nil {

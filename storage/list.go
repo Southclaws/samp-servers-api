@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2/bson"
 
@@ -61,8 +59,6 @@ func (mgr *Manager) GetServers(pageNum int, sort types.SortOrder, by types.SortC
 			}
 		}
 	}
-
-	fmt.Println(query, sortBy, pageNum)
 
 	err = mgr.collection.
 		Find(query).

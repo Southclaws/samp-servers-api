@@ -18,6 +18,7 @@ func (app *App) onRequestArchive(address string) {
 		return
 	}
 }
+
 func (app *App) onRequestRemove(address string) {
 	logger.Debug("removing server",
 		zap.String("address", address))
@@ -30,6 +31,7 @@ func (app *App) onRequestRemove(address string) {
 		return
 	}
 }
+
 func (app *App) onRequestUpdate(server types.Server) {
 	logger.Debug("updating server",
 		zap.String("address", server.Core.Address))

@@ -30,6 +30,7 @@ type Scraper struct {
 	failedAttempts *syncmap.Map
 	active         *tickerpool.TickerPool
 	failed         *tickerpool.TickerPool
+	Metrics        *types.Metrics
 }
 
 // QueryFunction represents a function capable of retreiving server information via the server API
@@ -41,6 +42,7 @@ func New(ctx context.Context, initial []string, config Config) (daemon *Scraper,
 		config:         config,
 		ctx:            ctx,
 		failedAttempts: &syncmap.Map{},
+		Metrics:        types.NewMetricsRecorder(),
 	}
 
 	daemon.active, err = tickerpool.NewTickerPool(config.QueryInterval)
@@ -62,19 +64,22 @@ func New(ctx context.Context, initial []string, config Config) (daemon *Scraper,
 	return
 }
 
-// Add will add a new address to the TickerPool and query it every
+// Add will add a new address to the TickerPool and query it periodically
 func (daemon *Scraper) Add(address string) {
-	daemon.active.Add(address, func() { daemon.add(address) })
-}
-
-func (daemon *Scraper) add(address string) {
-	remove, err := daemon.query(address)
-	if err != nil {
-		if remove {
-			daemon.config.OnRequestArchive(address)
-			daemon.addFailed(address)
+	daemon.active.Add(address, func() {
+		remove, err := daemon.query(address)
+		daemon.Metrics.Queries.Mark(1)
+		if err != nil {
+			daemon.Metrics.Failures.Mark(1)
+			if remove {
+				daemon.Metrics.Archives.Mark(1)
+				daemon.config.OnRequestArchive(address)
+				daemon.addFailed(address)
+			}
+		} else {
+			daemon.Metrics.Successes.Mark(1)
 		}
-	}
+	})
 }
 
 // Remove will remove an address from the query rotation
@@ -82,6 +87,7 @@ func (daemon *Scraper) Remove(address string) {
 	if daemon.active.Exists(address) {
 		daemon.failedAttempts.Delete(address)
 		daemon.active.Remove(address)
+		daemon.Metrics.Removals.Mark(1)
 
 		daemon.config.OnRequestRemove(address)
 	}

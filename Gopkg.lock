@@ -81,6 +81,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/rcrowley/go-metrics"
+  packages = ["."]
+  revision = "e2704e165165ec55d062f5919b4b29494e9fa790"
+
+[[projects]]
+  branch = "master"
   name = "github.com/saintfish/chardet"
   packages = ["."]
   revision = "3af4cd4741ca4f3eb0c407c034571a6fb0ea529c"
@@ -185,6 +191,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "932434943e610faa8b734585afada11a3ae0bc35857bcf052575093a6e72ec69"
+  inputs-digest = "d3daf5006ff6815128405cc13607d045fe08a06505580bb18255815ebbff97a8"
   solver-name = "gps-cdcl"
   solver-version = 1

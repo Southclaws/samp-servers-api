@@ -74,8 +74,8 @@ func Initialise(config types.Config) (app *App, err error) {
 	go app.LegacyListQuery()
 
 	app.handlers = map[string]types.RouteHandler{
-		"v2": v2.Init(app.db, app.qd, config),
-		"v3": v3.Init(app.db, app.qd, config),
+		"v2": v2.Init(app.db, app.qd, app.qd.Metrics, config),
+		"v3": v3.Init(app.db, app.qd, app.qd.Metrics, config),
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
