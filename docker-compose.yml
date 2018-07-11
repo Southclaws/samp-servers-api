@@ -10,6 +10,7 @@ services:
         environment:
             MONGO_INITDB_ROOT_USERNAME: '${MONGO_USER}'
             MONGO_INITDB_ROOT_PASSWORD: '${MONGO_PASS}'
+            MONGO_INITDB_DATABASE: samplist
         volumes:
             - '${DATA_DIR}/${COMPOSE_PROJECT_NAME}/mongodb:/data/db'
         networks:
@@ -36,7 +37,7 @@ services:
         depends_on:
             - mongodb
         labels:
-            - 'traefik.docker.network=deployments_default'
+            - 'traefik.docker.network=${COMPOSE_PROJECT_NAME}_default'
             - 'traefik.frontend.rule=Host:api.samp-servers.net'
             - 'traefik.frontend.headers.SSLRedirect=true'
             - 'traefik.port=80'
@@ -46,6 +47,6 @@ services:
         networks:
             - default
         labels:
-            - 'traefik.docker.network=deployments_default'
+            - 'traefik.docker.network=${COMPOSE_PROJECT_NAME}_default'
             - 'traefik.frontend.rule=Host:samp-servers.net'
             - 'traefik.frontend.headers.SSLRedirect=true'
