@@ -22,19 +22,3 @@ type RouteHandler interface {
 	Version() string
 	Routes() []Route
 }
-
-// // EndpointHandler wraps a HTTP handler function with app-specific args/returns
-// type EndpointHandler func(w http.ResponseWriter, r *http.Request)
-
-// // ServeHTTP implements the necessary chaining functionality for HTTP middleware
-// func (f EndpointHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-// 	f(w, r)
-// 	// TODO: errors
-// 	// if err != nil {
-// 	// 	logger.Error("request handler failed",
-// 	// 		zap.Error(err))
-// 	// 	w.WriteHeader(http.StatusInternalServerError)
-// 	// }
-
-// 	w.Header().Set("Content-Type", "application/json")
-// }

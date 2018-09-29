@@ -20,7 +20,7 @@ type routeForTemplate struct {
 	ReturnsSerialised string
 }
 
-const documentationHeader = `# %s
+const documentationHeader = `# Server: %s API: %s
 
 This is an automatically generated documentation page for the %s API endpoints.
 
@@ -50,9 +50,9 @@ Example: ` + "`" + `{{ .ParamsSerialised }}` + "`" + `
 {{ else }}{{ end }}
 `
 
-func docsWrapper(handler types.RouteHandler) http.HandlerFunc {
+func (app App) docsWrapper(handler types.RouteHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(fmt.Sprintf(documentationHeader, handler.Version(), handler.Version())))
+		w.Write([]byte(fmt.Sprintf(documentationHeader, app.config.Version, handler.Version(), handler.Version())))
 		for _, route := range handler.Routes() {
 			docsForRoute(handler.Version(), route, w)
 		}

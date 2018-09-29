@@ -14,9 +14,7 @@
 .glide/
 
 *.private
-
-# node_modules for gql lib
-node_modules/
+.idea/
 
 *.env
 samp-servers-api

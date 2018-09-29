@@ -16,7 +16,7 @@ type Server struct {
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
 func (server *Server) Validate() (errs []error) {
-	_, addrErrs := AddressFromString(string(server.Core.Address))
+	_, addrErrs := AddressFromString(server.Core.Address)
 	errs = append(errs, addrErrs...)
 
 	if len(server.Core.Hostname) < 1 {
