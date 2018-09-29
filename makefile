@@ -39,6 +39,8 @@ build:
 
 push:
 	docker push southclaws/samp-servers-api:$(VERSION)
+	docker tag southclaws/samp-servers-api:$(VERSION) southclaws/samp-servers-api:latest
+	docker push southclaws/samp-servers-api:latest
 	
 run:
 	-docker stop samp-servers-api
