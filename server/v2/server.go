@@ -2,7 +2,6 @@ package v2
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -15,13 +14,10 @@ import (
 // serverAdd handles "simple" posts where the only data is the server address which is passed to
 // the QueryDaemon which handles pulling the rest of the information from the legacy query API.
 func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
-	raw, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		WriteError(w, http.StatusInternalServerError, err)
-		return
+	address, ok := mux.Vars(r)["address"]
+	if !ok {
+		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
 	}
-
-	address := string(raw)
 
 	normalised, errs := types.AddressFromString(address)
 	if errs != nil {
@@ -34,20 +30,7 @@ func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 
 // serverPost handles posting a server object
 func (v *V2) serverPost(w http.ResponseWriter, r *http.Request) {
-	address, ok := mux.Vars(r)["address"]
-	if !ok {
-		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
-	}
-
 	from := strings.Split(r.RemoteAddr, ":")[0]
-
-	if v.Config.VerifyByHost {
-		addressIP := strings.Split(address, ":")[0]
-		if from != addressIP {
-			WriteError(w, http.StatusBadRequest, errors.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
-			return
-		}
-	}
 
 	server := types.Server{}
 	err := json.NewDecoder(r.Body).Decode(&server)
@@ -56,9 +39,13 @@ func (v *V2) serverPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if server.Core.Address != address {
-		WriteError(w, http.StatusBadRequest, errors.Errorf("route address '%v' does not match payload address '%s'", address, server.Core.Address))
-		return
+	if v.Config.VerifyByHost {
+		addressIP := strings.Split(server.Core.Address, ":")[0]
+		if from != addressIP {
+			WriteError(w, http.StatusBadRequest,
+				errors.Errorf("request address '%v' does not match declared server address '%s'", from, addressIP))
+			return
+		}
 	}
 
 	errs := server.Validate()

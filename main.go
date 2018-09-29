@@ -9,12 +9,16 @@ import (
 	"github.com/Southclaws/samp-servers-api/types"
 )
 
+var version = "master"
+
 func main() {
 	config := types.Config{}
 	err := envconfig.Process("SAMPLIST", &config)
 	if err != nil {
 		panic(err)
 	}
+
+	config.Version = version
 
 	app, err := server.Initialise(config)
 	if err != nil {

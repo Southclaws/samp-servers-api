@@ -4,6 +4,7 @@ import "time"
 
 // Config stores app global configuration
 type Config struct {
+	Version         string
 	Bind            string        `split_words:"true" required:"true"`
 	MongoHost       string        `split_words:"true" required:"true"`
 	MongoPort       string        `split_words:"true" required:"true"`

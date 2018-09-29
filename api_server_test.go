@@ -23,7 +23,7 @@ func TestAPI_ServerPostAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(true).R().SetBody(tt.args.address).Post("http://localhost:8080/v2/server")
+			resp, err := resty.SetDebug(false).R().Post("http://localhost:8080/v2/server/" + tt.args.address)
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
@@ -113,7 +113,7 @@ func TestAPI_ServerPost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(true).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:8080/v2/server/%s", tt.args.address))
+			resp, err := resty.SetDebug(false).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:8080/v2/server"))
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
@@ -154,7 +154,7 @@ func TestAPI_ServerGet(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotServer := types.Server{}
-			resp, err := resty.SetDebug(true).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:8080/v2/server/%s", tt.args.address))
+			resp, err := resty.SetDebug(false).R().SetResult(&gotServer).Get(fmt.Sprintf("http://localhost:8080/v2/server/%s", tt.args.address))
 			assert.NoError(t, err)
 			assert.Equal(t, 200, resp.StatusCode())
 			assert.Equal(t, tt.wantServer, gotServer)

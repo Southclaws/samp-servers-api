@@ -36,8 +36,7 @@ server.
 {
   "core": {
     "ip": "127.0.0.1:7777",
-    "hn":
-      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "hn": "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
     "pc": 32,
     "pm": 128,
     "gm": "Grand Larceny",
@@ -71,8 +70,7 @@ Returns a full server object using the specified address.
 {
   "core": {
     "ip": "127.0.0.1:7777",
-    "hn":
-      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "hn": "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
     "pc": 32,
     "pm": 128,
     "gm": "Grand Larceny",
@@ -111,8 +109,7 @@ Example: `by=player&filters=full&filters=password&page=2&sort=asc`
 [
   {
     "ip": "127.0.0.1:7777",
-    "hn":
-      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "hn": "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
     "pc": 32,
     "pm": 128,
     "gm": "Grand Larceny",
@@ -122,8 +119,7 @@ Example: `by=player&filters=full&filters=password&page=2&sort=asc`
   },
   {
     "ip": "127.0.0.1:7777",
-    "hn":
-      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "hn": "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
     "pc": 32,
     "pm": 128,
     "gm": "Grand Larceny",
@@ -133,8 +129,7 @@ Example: `by=player&filters=full&filters=password&page=2&sort=asc`
   },
   {
     "ip": "127.0.0.1:7777",
-    "hn":
-      "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
+    "hn": "SA-MP SERVER CLAN tdm [NGRP] [GF EDIT] [Y_INI] [RUS] [BASIC] [GODFATHER] [REFUNDING] [STRCMP]",
     "pc": 32,
     "pm": 128,
     "gm": "Grand Larceny",

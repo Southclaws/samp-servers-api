@@ -1,4 +1,4 @@
-VERSION := $(shell cat VERSION)
+VERSION := $(shell git describe --always --tags --dirty)
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 -include .env
 .PHONY: version
@@ -9,11 +9,12 @@ LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 # -
 
 
+static:
+	go get
+	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o samp-servers-api .
+
 fast:
 	go build $(LDFLAGS) -o samp-servers-api
-
-static:
-	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o samp-servers-api .
 
 local: fast
 	DEBUG=1 \
@@ -32,7 +33,6 @@ test:
 # Docker
 # -
 
-
 build:
 	docker build --no-cache -t southclaws/samp-servers-api:$(VERSION) .
 
@@ -48,23 +48,10 @@ run:
 		--env-file .env \
 		southclaws/samp-servers-api:$(VERSION)
 
-run-prod:
-	-docker stop samp-servers-api
-	-docker rm samp-servers-api
-	docker run \
-		--name samp-servers-api \
-		--detach \
-		--publish 7790:80 \
-		--restart always \
-		--env-file .env \
-		southclaws/samp-servers-api:$(VERSION)
-	docker network connect mongodb samp-servers-api
-
 
 # -
 # Testing
 # -
-
 
 mongodb:
 	-docker stop mongodb

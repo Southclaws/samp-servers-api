@@ -31,6 +31,7 @@ func Init(Storage *storage.Manager, Scraper *scraper.Scraper, Metrics *types.Met
 func (v *V2) Version() string { return "v2" }
 
 // Routes returns the version routes
+// nolint:lll
 func (v *V2) Routes() []types.Route {
 	return []types.Route{
 		{
