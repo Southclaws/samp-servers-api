@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"gopkg.in/resty.v0"
+	"gopkg.in/resty.v1"
 
 	"github.com/Southclaws/samp-servers-api/types"
 )
