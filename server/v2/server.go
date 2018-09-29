@@ -54,6 +54,8 @@ func (v *V2) serverPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	server.Active = true
+
 	err = v.Storage.UpsertServer(server)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)

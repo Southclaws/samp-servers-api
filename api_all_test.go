@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/Southclaws/samp-servers-api/server"
 	"github.com/Southclaws/samp-servers-api/types"
@@ -20,7 +21,7 @@ func TestMain(m *testing.M) {
 		MongoUser:       "root",
 		MongoPass:       "",
 		MongoCollection: "servers",
-		QueryInterval:   100000,
+		QueryInterval:   time.Hour, // don't query during tests
 		MaxFailedQuery:  0,
 		VerifyByHost:    false,
 	}

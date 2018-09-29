@@ -68,7 +68,6 @@ func New(ctx context.Context, initial []string, config Config) (daemon *Scraper,
 func (daemon *Scraper) Add(address string) {
 	daemon.active.Add(address, func() {
 		remove, err := daemon.query(address)
-		daemon.Metrics.Queries.Mark(1)
 		if err != nil {
 			daemon.Metrics.Failures.Mark(1)
 			if remove {
@@ -79,6 +78,7 @@ func (daemon *Scraper) Add(address string) {
 		} else {
 			daemon.Metrics.Successes.Mark(1)
 		}
+		daemon.Metrics.Queries.Mark(1)
 	})
 }
 
