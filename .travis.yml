@@ -6,7 +6,7 @@ language: go
 go:
   - "1.11"
 env:
-  - TRAVIS=1
+  - TRAVIS=1 GO111MODULES=on
 script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
     --password-stdin
