@@ -26,6 +26,7 @@ version:
 	git push origin $(VERSION)
 
 test:
+	go get
 	go test -v -race
 
 
