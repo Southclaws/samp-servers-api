@@ -1,4 +1,6 @@
 sudo: required
+notifications:
+  email: false
 services:
   - docker
   - mongodb
