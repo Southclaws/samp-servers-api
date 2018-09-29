@@ -8,11 +8,11 @@ language: go
 go:
   - "1.11"
 env:
-  - TRAVIS=1
+  - GO111MODULE=on TRAVIS=1
 script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
     --password-stdin
-  - GO111MODULES=on make test
+  - make test
   - make build
   - make push
 branches:
