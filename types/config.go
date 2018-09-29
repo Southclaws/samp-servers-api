@@ -15,4 +15,5 @@ type Config struct {
 	QueryInterval   time.Duration `split_words:"true" required:"true"`
 	MaxFailedQuery  int           `split_words:"true" required:"true"`
 	VerifyByHost    bool          `split_words:"true" required:"true"`
+	LegacyList      bool          `split_words:"true" required:"true"`
 }

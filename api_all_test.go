@@ -24,6 +24,7 @@ func TestMain(m *testing.M) {
 		QueryInterval:   time.Hour, // don't query during tests
 		MaxFailedQuery:  0,
 		VerifyByHost:    false,
+		LegacyList:      false,
 	}
 
 	fmt.Println("initialising announce-backend testing mode", config)

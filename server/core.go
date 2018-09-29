@@ -70,8 +70,10 @@ func Initialise(config types.Config) (app *App, err error) {
 		return
 	}
 
-	// Start a periodic query against the SA:MP official internet list (if it's even online...)
-	go app.LegacyListQuery()
+	if config.LegacyList {
+		// Start a periodic query against the SA:MP official internet list (if it's even online...)
+		go app.LegacyListQuery()
+	}
 
 	app.handlers = map[string]types.RouteHandler{
 		"v2": v2.Init(app.db, app.qd, app.qd.Metrics, config),
