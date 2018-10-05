@@ -57,20 +57,22 @@ const FilterFull FilterAttribute = "full"
 
 // ServerListParams represents the URL query parameters for server listing
 type ServerListParams struct {
-	Page    int
-	Sort    SortOrder
-	By      SortColumn
-	Filters []FilterAttribute
+	Page     int
+	PageSize PageSize
+	Sort     SortOrder
+	By       SortColumn
+	Filters  []FilterAttribute
 }
 
 // Example returns an example of ServerListParams in url.Values format
 func (slp ServerListParams) Example() (result url.Values) {
 	// nolint
 	result, err := qstring.Marshal(&ServerListParams{
-		Page:    2,
-		Sort:    SortAsc,
-		By:      ByPlayers,
-		Filters: []FilterAttribute{FilterFull, FilterPassword},
+		Page:     2,
+		PageSize: 100,
+		Sort:     SortAsc,
+		By:       ByPlayers,
+		Filters:  []FilterAttribute{FilterFull, FilterPassword},
 	})
 	if err != nil {
 		panic(err)

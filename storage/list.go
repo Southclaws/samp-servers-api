@@ -8,13 +8,17 @@ import (
 )
 
 // GetServers returns a slice of Core objects
-func (mgr *Manager) GetServers(pageNum int, sort types.SortOrder, by types.SortColumn, filters []types.FilterAttribute) (servers []types.ServerCore, err error) {
+func (mgr *Manager) GetServers(pageNum int, pageSize types.PageSize, sort types.SortOrder, by types.SortColumn, filters []types.FilterAttribute) (servers []types.ServerCore, err error) {
 	selected := []types.Server{}
 
 	if pageNum <= 0 {
 		pageNum = 0
 	} else {
 		pageNum = pageNum - 1 // subtract 1 so 1 becomes 0, "page 1" makes more sense to users
+	}
+
+	if pageSize <= 0 {
+		pageSize = types.PageSizeDefault
 	}
 
 	var sortBy types.SortOrder
@@ -63,8 +67,8 @@ func (mgr *Manager) GetServers(pageNum int, sort types.SortOrder, by types.SortC
 	err = mgr.collection.
 		Find(query).
 		Sort(string(sortBy)).
-		Skip(pageNum * int(types.PageSizeDefault)).
-		Limit(int(types.PageSizeDefault)).
+		Skip(pageNum * int(pageSize)).
+		Limit(int(pageSize)).
 		All(&selected)
 	if err == nil {
 		for i := range selected {
