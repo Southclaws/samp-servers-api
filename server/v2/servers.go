@@ -19,7 +19,7 @@ func (v *V2) serverList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	servers, err := v.Storage.GetServers(params.Page, params.Sort, params.By, params.Filters)
+	servers, err := v.Storage.GetServers(params.Page, params.PageSize, params.Sort, params.By, params.Filters)
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 		return
