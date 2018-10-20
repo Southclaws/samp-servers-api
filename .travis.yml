@@ -10,10 +10,10 @@ go:
 env:
   - GO111MODULE=on TRAVIS=1
 script:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
-    --password-stdin
-  - make build
-  - make push
-branches:
-  only:
-    - master
+  # build/test
+  - make static
+  - make test
+  # deploy, only if on master
+  - if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then echo "$DOCKER_PASSWORD" |
+    docker login -u "$DOCKER_USERNAME" --password-stdin && make build && make
+    push; fi

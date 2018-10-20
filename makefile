@@ -1,33 +1,31 @@
-VERSION := $(shell git describe --always --tags --dirty)
+VERSION := $(shell git describe --tags --dirty --always)
+SERVICE := $(shell basename $(shell pwd))
+OWNER := southclaws
 LDFLAGS := -ldflags "-X main.version=$(VERSION)"
 -include .env
-.PHONY: version
-
 
 # -
-# Local
-# -
-
+# Local Development
+#-
 
 static:
 	go get
-	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o samp-servers-api .
+	CGO_ENABLED=0 GOOS=linux go build -a $(LDFLAGS) -o $(SERVICE) .
 
 fast:
-	go build $(LDFLAGS) -o samp-servers-api
+	go build $(LDFLAGS) -o $(SERVICE)
 
 local: fast
-	DEBUG=1 \
-	./samp-servers-api
+	./$(SERVICE)
+
+test:
+	go get
+	go test -v -race
 
 version:
 	git tag $(VERSION)
 	git push
 	git push origin $(VERSION)
-
-test:
-	go get
-	go test -v -race
 
 
 # -
@@ -35,25 +33,16 @@ test:
 # -
 
 build:
-	docker build --no-cache -t southclaws/samp-servers-api:$(VERSION) .
+	docker build --no-cache -t $(OWNER)/$(SERVICE):$(VERSION) .
 
 push:
-	docker push southclaws/samp-servers-api:$(VERSION)
-	docker tag southclaws/samp-servers-api:$(VERSION) southclaws/samp-servers-api:latest
-	docker push southclaws/samp-servers-api:latest
-	
-run:
-	-docker stop samp-servers-api
-	-docker rm samp-servers-api
-	docker run \
-		--name samp-servers-api \
-		--network host \
-		--env-file .env \
-		southclaws/samp-servers-api:$(VERSION)
+	docker push $(OWNER)/$(SERVICE):$(VERSION)
+	docker tag $(OWNER)/$(SERVICE):$(VERSION) $(OWNER)/$(SERVICE):latest
+	docker push $(OWNER)/$(SERVICE):latest
 
 
 # -
-# Testing
+# Testing Database
 # -
 
 mongodb:

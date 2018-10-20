@@ -1,11 +1,11 @@
 # -
 # Build workspace
 # -
-FROM golang AS compile
+FROM golang:1.11 AS compile
 
 RUN apt-get update -y && apt-get install --no-install-recommends -y -q build-essential ca-certificates
 
-WORKDIR /go/src/github.com/Southclaws/samp-servers-api
+WORKDIR /samp-servers-api
 ADD . .
 RUN make static
 
@@ -14,7 +14,7 @@ RUN make static
 # -
 FROM scratch
 
-COPY --from=compile /go/src/github.com/Southclaws/samp-servers-api/samp-servers-api /bin/samp-servers-api
+COPY --from=compile /samp-servers-api/samp-servers-api /bin/samp-servers-api
 COPY --from=compile /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 ENTRYPOINT ["samp-servers-api"]
