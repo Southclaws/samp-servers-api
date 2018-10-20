@@ -1,9 +1,8 @@
 package server
 
 import (
-	"go.uber.org/zap"
-
 	"github.com/Southclaws/samp-servers-api/types"
+	"go.uber.org/zap"
 )
 
 func (app *App) onRequestArchive(address string) {
@@ -17,6 +16,7 @@ func (app *App) onRequestArchive(address string) {
 			zap.String("address", address))
 		return
 	}
+	app.metrics.Archives.Observe(1)
 }
 
 func (app *App) onRequestRemove(address string) {
@@ -30,6 +30,7 @@ func (app *App) onRequestRemove(address string) {
 			zap.String("address", address))
 		return
 	}
+	app.metrics.Removes.Observe(1)
 }
 
 func (app *App) onRequestUpdate(server types.Server) {
@@ -43,4 +44,5 @@ func (app *App) onRequestUpdate(server types.Server) {
 			zap.String("address", server.Core.Address))
 		return
 	}
+	app.metrics.Updates.Observe(1)
 }

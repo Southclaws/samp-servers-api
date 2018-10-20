@@ -8,6 +8,7 @@ import (
 	"github.com/Southclaws/samp-servers-api/types"
 )
 
+//nolint
 func TestManager_GetServers(t *testing.T) {
 	type args struct {
 		page   int

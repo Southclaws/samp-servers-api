@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net/http/pprof"
 	"context"
 	"net/http"
 	"path"
@@ -8,6 +9,7 @@ import (
 	"github.com/Southclaws/go-samp-query"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 
 	"github.com/Southclaws/samp-servers-api/scraper"
@@ -25,6 +27,7 @@ type App struct {
 	qd         *scraper.Scraper
 	handlers   map[string]types.RouteHandler
 	httpServer *http.Server
+	metrics    Metrics
 }
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
@@ -32,7 +35,8 @@ func Initialise(config types.Config) (app *App, err error) {
 	logger.Debug("initialising samp-servers-api with debug logging", zap.Any("config", config))
 
 	app = &App{
-		config: config,
+		config:  config,
+		metrics: newMetrics(),
 	}
 	app.ctx, app.cancel = context.WithCancel(context.Background())
 
@@ -80,6 +84,12 @@ func Initialise(config types.Config) (app *App, err error) {
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
+	router.Handle("/metrics", promhttp.Handler())
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	for name, handler := range app.handlers {
 		routes := handler.Routes()
 
