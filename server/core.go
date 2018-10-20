@@ -85,7 +85,7 @@ func Initialise(config types.Config) (app *App, err error) {
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.Handle("/metrics", promhttp.Handler())
-	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/{name}", pprof.Index)
 	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
