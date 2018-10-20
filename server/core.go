@@ -27,7 +27,6 @@ type App struct {
 	qd         *scraper.Scraper
 	handlers   map[string]types.RouteHandler
 	httpServer *http.Server
-	metrics    Metrics
 }
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
@@ -36,7 +35,6 @@ func Initialise(config types.Config) (app *App, err error) {
 
 	app = &App{
 		config:  config,
-		metrics: newMetrics(),
 	}
 	app.ctx, app.cancel = context.WithCancel(context.Background())
 

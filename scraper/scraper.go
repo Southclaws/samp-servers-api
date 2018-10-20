@@ -5,11 +5,10 @@ import (
 	"time"
 
 	"github.com/Southclaws/go-samp-query"
+	"github.com/Southclaws/samp-servers-api/types"
 	"github.com/Southclaws/tickerpool"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/syncmap"
-
-	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // Config contains parameters to tweak the scraper performance
@@ -69,16 +68,16 @@ func (daemon *Scraper) Add(address string) {
 	daemon.active.Add(address, func() {
 		remove, err := daemon.query(address)
 		if err != nil {
-			daemon.Metrics.Failures.Mark(1)
+			daemon.Metrics.Failures.Observe(1)
 			if remove {
-				daemon.Metrics.Archives.Mark(1)
+				daemon.Metrics.Archives.Observe(1)
 				daemon.config.OnRequestArchive(address)
 				daemon.addFailed(address)
 			}
 		} else {
-			daemon.Metrics.Successes.Mark(1)
+			daemon.Metrics.Successes.Observe(1)
 		}
-		daemon.Metrics.Queries.Mark(1)
+		daemon.Metrics.Queries.Observe(1)
 	})
 }
 
@@ -87,7 +86,7 @@ func (daemon *Scraper) Remove(address string) {
 	if daemon.active.Exists(address) {
 		daemon.failedAttempts.Delete(address)
 		daemon.active.Remove(address)
-		daemon.Metrics.Removals.Mark(1)
+		daemon.Metrics.Removals.Observe(1)
 
 		daemon.config.OnRequestRemove(address)
 	}
