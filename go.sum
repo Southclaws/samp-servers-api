@@ -1,5 +1,7 @@
 github.com/Southclaws/go-samp-query v0.0.0-20180305175934-94d8b93cf0f9 h1:XF435V/g9ZmHzaD4/um2APSowJm+CGpvA6y3+reSfHU=
 github.com/Southclaws/go-samp-query v0.0.0-20180305175934-94d8b93cf0f9/go.mod h1:wqV9+gF7NWYv3eckL9sWa6ZfgO6rWzt17M3CESR+z0o=
+github.com/Southclaws/go-samp-query v1.1.1 h1:PZ3gxLOk2g9bH9d8sCmo7kanVcOKBEpY9aFFF38QXgY=
+github.com/Southclaws/go-samp-query v1.1.1/go.mod h1:veYZpOaPw6PXwvTGo9Rg3INKQV/2PR8Bn8p+bQedFNM=
 github.com/Southclaws/tickerpool v0.0.0-20170828114622-8030a05342dc h1:XUhEq7cLQc479H32H+6POEuwTgWDdZfP7IeTRRSTYDo=
 github.com/Southclaws/tickerpool v0.0.0-20170828114622-8030a05342dc/go.mod h1:XIf1UTEWbBBv4IzJ7O+y1BkL/+rVUI/yew53pGXqtm4=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc h1:cAKDfWh5VpdgMhJosfJnn5/FoN2SRZ4p7fJNX58YPaU=
@@ -8,6 +10,7 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLM
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dyninc/qstring v0.0.0-20160719172318-ab5840a88e81 h1:qUs1h5OM0AIdSmU+1E70ux/Rof7c1Sl+alkoail17p8=
 github.com/dyninc/qstring v0.0.0-20160719172318-ab5840a88e81/go.mod h1:epYnJgywZjJA8pFn29PbCtok40fkEXYz6985IbLTTzs=
 github.com/gogo/protobuf v1.1.1 h1:72R+M5VuhED/KujmZVcIquuo8mBgX4oVda//DQb3PXo=
