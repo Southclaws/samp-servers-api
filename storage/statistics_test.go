@@ -26,7 +26,7 @@ func TestManager_GetStatistics(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	gotStatistics.PlayersPerServer = gotStatistics.Players / gotStatistics.Servers
+	gotStatistics.PlayersPerServer = float32(gotStatistics.Players) / float32(gotStatistics.Servers)
 
 	assert.Equal(t, wantStatistics, gotStatistics)
 }
