@@ -15,8 +15,18 @@ func TestManager_GetStatistics(t *testing.T) {
 		PlayersPerServer: 250,
 	}
 
-	gotStatistics, err := mgr.GetStatistics()
+	gotStatistics := types.Statistics{}
 
-	assert.NoError(t, err)
+	var err error
+	gotStatistics.Servers, err = mgr.GetActiveServers()
+	if err != nil {
+		t.Error(err)
+	}
+	gotStatistics.Players, err = mgr.GetActiveServers()
+	if err != nil {
+		t.Error(err)
+	}
+	gotStatistics.PlayersPerServer = gotStatistics.Players / gotStatistics.Servers
+
 	assert.Equal(t, wantStatistics, gotStatistics)
 }
