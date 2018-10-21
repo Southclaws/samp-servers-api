@@ -66,6 +66,7 @@ func newMetricsRecorder() (m *metrics) {
 		m.Failures,
 		m.Archives,
 		m.Removals,
+		m.QueryTime,
 	)
 	return m
 }
