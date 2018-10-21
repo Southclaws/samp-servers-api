@@ -20,7 +20,7 @@ func (v *V2) serverStats(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 	}
-	stats.Players, err = v.Storage.GetActiveServers()
+	stats.Players, err = v.Storage.GetTotalPlayers()
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 	}
