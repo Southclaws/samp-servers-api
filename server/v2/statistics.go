@@ -20,6 +20,14 @@ func (v *V2) serverStats(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
 	}
+	stats.Players, err = v.Storage.GetActiveServers()
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, errors.Wrap(err, "failed to get servers"))
+	}
+
+	if stats.Servers > 0 {
+		stats.PlayersPerServer = float32(stats.Players / stats.Servers)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(stats)
