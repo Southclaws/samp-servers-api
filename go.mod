@@ -1,7 +1,7 @@
 module github.com/Southclaws/samp-servers-api
 
 require (
-	github.com/Southclaws/go-samp-query v1.1.1
+	github.com/Southclaws/go-samp-query v1.1.2
 	github.com/Southclaws/tickerpool v0.0.0-20170828114622-8030a05342dc
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 // indirect
@@ -20,7 +20,6 @@ require (
 	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
 	github.com/prometheus/common v0.0.0-20181019103554-16b4535ad14a // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
-	github.com/rcrowley/go-metrics v0.0.0-20180503174638-e2704e165165
 	github.com/stretchr/testify v1.2.2
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
