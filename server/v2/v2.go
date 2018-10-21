@@ -13,16 +13,14 @@ import (
 type V2 struct {
 	Storage *storage.Manager
 	Scraper *scraper.Scraper
-	Metrics *types.Metrics
 	Config  types.Config
 }
 
 // Init initialises and returns a handler group
-func Init(Storage *storage.Manager, Scraper *scraper.Scraper, Metrics *types.Metrics, Config types.Config) *V2 {
+func Init(Storage *storage.Manager, Scraper *scraper.Scraper, Config types.Config) *V2 {
 	return &V2{
 		Storage: Storage,
 		Scraper: Scraper,
-		Metrics: Metrics,
 		Config:  Config,
 	}
 }

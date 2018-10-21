@@ -5,10 +5,11 @@ import (
 	"time"
 
 	"github.com/Southclaws/go-samp-query"
-	"github.com/Southclaws/samp-servers-api/types"
 	"github.com/Southclaws/tickerpool"
 	"github.com/pkg/errors"
 	"golang.org/x/sync/syncmap"
+
+	"github.com/Southclaws/samp-servers-api/types"
 )
 
 // Config contains parameters to tweak the scraper performance
@@ -29,7 +30,7 @@ type Scraper struct {
 	failedAttempts *syncmap.Map
 	active         *tickerpool.TickerPool
 	failed         *tickerpool.TickerPool
-	Metrics        *types.Metrics
+	metrics        *metrics
 }
 
 // QueryFunction represents a function capable of retreiving server information via the server API
@@ -41,7 +42,7 @@ func New(ctx context.Context, initial []string, config Config) (daemon *Scraper,
 		config:         config,
 		ctx:            ctx,
 		failedAttempts: &syncmap.Map{},
-		Metrics:        types.NewMetricsRecorder(),
+		metrics:        newMetricsRecorder(),
 	}
 
 	daemon.active, err = tickerpool.NewTickerPool(config.QueryInterval)
@@ -66,18 +67,20 @@ func New(ctx context.Context, initial []string, config Config) (daemon *Scraper,
 // Add will add a new address to the TickerPool and query it periodically
 func (daemon *Scraper) Add(address string) {
 	daemon.active.Add(address, func() {
+		queryStart := time.Now()
 		remove, err := daemon.query(address)
 		if err != nil {
-			daemon.Metrics.Failures.Observe(1)
+			daemon.metrics.Failures.Inc()
 			if remove {
-				daemon.Metrics.Archives.Observe(1)
+				daemon.metrics.Archives.Inc()
 				daemon.config.OnRequestArchive(address)
 				daemon.addFailed(address)
 			}
 		} else {
-			daemon.Metrics.Successes.Observe(1)
+			daemon.metrics.Successes.Inc()
 		}
-		daemon.Metrics.Queries.Observe(1)
+		daemon.metrics.QueryTime.Observe(time.Since(queryStart).Seconds())
+		daemon.metrics.Queries.Inc()
 	})
 }
 
@@ -86,7 +89,7 @@ func (daemon *Scraper) Remove(address string) {
 	if daemon.active.Exists(address) {
 		daemon.failedAttempts.Delete(address)
 		daemon.active.Remove(address)
-		daemon.Metrics.Removals.Observe(1)
+		daemon.metrics.Removals.Inc()
 
 		daemon.config.OnRequestRemove(address)
 	}

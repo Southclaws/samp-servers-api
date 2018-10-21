@@ -9,37 +9,58 @@ func (app *App) onRequestArchive(address string) {
 	logger.Debug("archiving server",
 		zap.String("address", address))
 
-	errInner := app.db.ArchiveServer(address)
-	if errInner != nil {
+	err := app.db.ArchiveServer(address)
+	if err != nil {
 		logger.Error("failed to archive server",
-			zap.Error(errInner),
+			zap.Error(err),
 			zap.String("address", address))
 		return
 	}
+
+	c, err := app.db.GetActiveServers()
+	if err != nil {
+		logger.Error("failed to get active servers metric",
+			zap.Error(err))
+	}
+	app.metrics.Active.Set(float64(c))
 }
 
 func (app *App) onRequestRemove(address string) {
 	logger.Debug("removing server",
 		zap.String("address", address))
 
-	errInner := app.db.RemoveServer(address)
-	if errInner != nil {
+	err := app.db.RemoveServer(address)
+	if err != nil {
 		logger.Error("failed to remove server",
-			zap.Error(errInner),
+			zap.Error(err),
 			zap.String("address", address))
 		return
 	}
+
+	c, err := app.db.GetInactiveServers()
+	if err != nil {
+		logger.Error("failed to get inactive servers metric",
+			zap.Error(err))
+	}
+	app.metrics.Inactive.Set(float64(c))
 }
 
 func (app *App) onRequestUpdate(server types.Server) {
 	logger.Debug("updating server",
 		zap.String("address", server.Core.Address))
 
-	errInner := app.db.UpsertServer(server)
-	if errInner != nil {
+	err := app.db.UpsertServer(server)
+	if err != nil {
 		logger.Error("failed to upsert server",
-			zap.Error(errInner),
+			zap.Error(err),
 			zap.String("address", server.Core.Address))
 		return
 	}
+
+	c, err := app.db.GetTotalPlayers()
+	if err != nil {
+		logger.Error("failed to get total players metric",
+			zap.Error(err))
+	}
+	app.metrics.Players.Set(float64(c))
 }

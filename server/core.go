@@ -1,7 +1,6 @@
 package server
 
 import (
-	"net/http/pprof"
 	"context"
 	"net/http"
 	"path"
@@ -27,6 +26,7 @@ type App struct {
 	qd         *scraper.Scraper
 	handlers   map[string]types.RouteHandler
 	httpServer *http.Server
+	metrics    *metrics
 }
 
 // Initialise sets up a database connection, binds all the routes and prepares for Start
@@ -35,6 +35,7 @@ func Initialise(config types.Config) (app *App, err error) {
 
 	app = &App{
 		config:  config,
+		metrics: newMetricsRecorder(),
 	}
 	app.ctx, app.cancel = context.WithCancel(context.Background())
 
@@ -77,17 +78,12 @@ func Initialise(config types.Config) (app *App, err error) {
 	}
 
 	app.handlers = map[string]types.RouteHandler{
-		"v2": v2.Init(app.db, app.qd, app.qd.Metrics, config),
-		// "v3": v3.Init(app.db, app.qd, app.qd.Metrics, config),
+		"v2": v2.Init(app.db, app.qd, config),
+		// "v3": v3.Init(app.db, app.qd, config),
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.Handle("/metrics", promhttp.Handler())
-	router.HandleFunc("/debug/pprof/{name}", pprof.Index)
-	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
 	for name, handler := range app.handlers {
 		routes := handler.Routes()
 
