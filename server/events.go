@@ -17,12 +17,7 @@ func (app *App) onRequestArchive(address string) {
 		return
 	}
 
-	c, err := app.db.GetActiveServers()
-	if err != nil {
-		logger.Error("failed to get active servers metric",
-			zap.Error(err))
-	}
-	app.metrics.Active.Set(float64(c))
+	app.updateIndexMetrics()
 }
 
 func (app *App) onRequestRemove(address string) {
@@ -37,12 +32,7 @@ func (app *App) onRequestRemove(address string) {
 		return
 	}
 
-	c, err := app.db.GetInactiveServers()
-	if err != nil {
-		logger.Error("failed to get inactive servers metric",
-			zap.Error(err))
-	}
-	app.metrics.Inactive.Set(float64(c))
+	app.updateIndexMetrics()
 }
 
 func (app *App) onRequestUpdate(server types.Server) {
@@ -57,7 +47,25 @@ func (app *App) onRequestUpdate(server types.Server) {
 		return
 	}
 
-	c, err := app.db.GetTotalPlayers()
+	app.updateIndexMetrics()
+}
+
+func (app *App) updateIndexMetrics() {
+	c, err := app.db.GetActiveServers()
+	if err != nil {
+		logger.Error("failed to get active servers metric",
+			zap.Error(err))
+	}
+	app.metrics.Active.Set(float64(c))
+
+	c, err = app.db.GetInactiveServers()
+	if err != nil {
+		logger.Error("failed to get inactive servers metric",
+			zap.Error(err))
+	}
+	app.metrics.Inactive.Set(float64(c))
+
+	c, err = app.db.GetTotalPlayers()
 	if err != nil {
 		logger.Error("failed to get total players metric",
 			zap.Error(err))
