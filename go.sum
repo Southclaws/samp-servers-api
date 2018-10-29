@@ -70,5 +70,6 @@ gopkg.in/mgo.v2 v2.0.0-20160818020120-3f83fa500528/go.mod h1:yeKp02qBN3iKW1OzL3M
 gopkg.in/resty.v1 v1.9.1 h1:Lq4EIBZ5e2J4ZWp22W2hVOYc0X1qwDDki/nNVchRbdw=
 gopkg.in/resty.v1 v1.9.1/go.mod h1:vo52Hzryw9PnPHcJfPsBiFW62XhNx5OczbV9y+IMpgc=
 gopkg.in/resty.v1 v1.10.0/go.mod h1:nrgQYbPhkRfn2BfT32NNTLfq3K9NuHRB0MsAcA9weWY=
+gopkg.in/resty.v1 v1.10.1/go.mod h1:nrgQYbPhkRfn2BfT32NNTLfq3K9NuHRB0MsAcA9weWY=
 gopkg.in/yaml.v2 v2.2.1 h1:mUhvW9EsL+naU5Q3cakzfE91YhliOondGd6ZrsDBHQE=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
