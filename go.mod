@@ -16,7 +16,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/pkg/errors v0.8.0
-	github.com/prometheus/client_golang v0.9.0
+	github.com/prometheus/client_golang v0.9.1
 	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910 // indirect
 	github.com/prometheus/common v0.0.0-20181019103554-16b4535ad14a // indirect
 	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d // indirect
