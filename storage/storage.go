@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 	"gopkg.in/mgo.v2"
@@ -51,10 +50,9 @@ func New(config Config) (mgr *Manager, err error) {
 	mgr.collection = mgr.session.DB(config.MongoName).C(config.MongoCollection)
 
 	err = mgr.collection.EnsureIndex(mgo.Index{
-		Key:         []string{"core.address"},
-		Unique:      true,
-		DropDups:    true,
-		ExpireAfter: time.Hour * 168,
+		Key:      []string{"core.address"},
+		Unique:   true,
+		DropDups: true,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "index ensure failed")
