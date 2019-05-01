@@ -7,11 +7,25 @@ import (
 // Server contains all the information associated with a game server including the core information, the standard SA:MP
 // "rules" and "players" lists as well as any additional fields to enhance the server browsing experience.
 type Server struct {
+	IP          string            `json:"ip"`
 	Core        ServerCore        `json:"core"`
 	Rules       map[string]string `json:"ru,omitempty"`
 	Description string            `json:"description"`
 	Banner      string            `json:"banner"`
 	Active      bool              `json:"active"`
+}
+
+// ServerCore stores the standard SA:MP 'info' query fields necessary for server lists. The json keys are short to cut down on
+// network traffic since these are the objects returned to a listing request which could contain hundreds of objects.
+type ServerCore struct {
+	Address    string `json:"ip"`
+	Hostname   string `json:"hn"`
+	Players    int    `json:"pc"`
+	MaxPlayers int    `json:"pm"`
+	Gamemode   string `json:"gm"`
+	Language   string `json:"la"`
+	Password   bool   `json:"pa"`
+	Version    string `json:"vn"`
 }
 
 // Validate checks the contents of a Server object to ensure all the required fields are valid.
