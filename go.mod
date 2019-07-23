@@ -5,7 +5,7 @@ require (
 	github.com/Southclaws/tickerpool v0.0.0-20170828114622-8030a05342dc
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc
 	github.com/dyninc/qstring v0.0.0-20160719172318-ab5840a88e81
-	github.com/gorilla/handlers v1.4.1
+	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.2
 	github.com/joho/godotenv v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
