@@ -17,6 +17,7 @@ func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 	address := r.FormValue("address")
 	if address == "" {
 		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
+		return
 	}
 
 	normalised, errs := types.AddressFromString(address)
