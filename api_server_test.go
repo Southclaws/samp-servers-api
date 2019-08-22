@@ -28,7 +28,7 @@ func TestAPI_ServerPostAddress(t *testing.T) {
 				SetRedirectPolicy(resty.FlexibleRedirectPolicy(2)).
 				R().
 				SetFormData(map[string]string{"address": tt.args.address}).
-				Patch("http://localhost:8080/v2/server")
+				Post("http://localhost:8080/v2/server")
 			if err != nil {
 				t.Errorf("/server PATCH failed: %v", err)
 			}
@@ -118,7 +118,7 @@ func TestAPI_ServerPost(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(false).R().SetBody(tt.args.server).Post(fmt.Sprintf("http://localhost:8080/v2/server"))
+			resp, err := resty.SetDebug(false).R().SetBody(tt.args.server).Patch(fmt.Sprintf("http://localhost:8080/v2/server"))
 			if err != nil {
 				t.Errorf("/server POST failed: %v", err)
 			}
