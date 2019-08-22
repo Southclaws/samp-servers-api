@@ -28,7 +28,7 @@ func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 
 	v.Scraper.Add(normalised)
 
-	w.Header().Set("Location", "/")
+	w.Header().Set("Location", "https://samp-servers.net/")
 	w.WriteHeader(http.StatusFound)
 }
 
