@@ -30,7 +30,10 @@ func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 
 // serverPost handles posting a server object
 func (v *V2) serverPost(w http.ResponseWriter, r *http.Request) {
-	from := strings.Split(r.RemoteAddr, ":")[0]
+	var from string
+	if from = r.Header.Get("X-Forwarded-For"); from == "" {
+		from = strings.Split(r.RemoteAddr, ":")[0]
+	}
 
 	server := types.Server{}
 	err := json.NewDecoder(r.Body).Decode(&server)
