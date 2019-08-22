@@ -26,6 +26,9 @@ func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	v.Scraper.Add(normalised)
+
+	w.Header().Set("Location", "/")
+	w.WriteHeader(http.StatusFound)
 }
 
 // serverPost handles posting a server object
