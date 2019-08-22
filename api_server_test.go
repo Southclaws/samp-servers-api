@@ -23,12 +23,17 @@ func TestAPI_ServerPostAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := resty.SetDebug(false).R().Post("http://localhost:8080/v2/server/" + tt.args.address)
+			resp, err := resty.
+				SetDebug(false).
+				SetRedirectPolicy(resty.FlexibleRedirectPolicy(2)).
+				R().
+				SetFormData(map[string]string{"address": tt.args.address}).
+				Patch("http://localhost:8080/v2/server")
 			if err != nil {
-				t.Errorf("/server POST failed: %v", err)
+				t.Errorf("/server PATCH failed: %v", err)
 			}
 			if resp.StatusCode() != 200 {
-				t.Errorf("/server POST non-200: %s", resp.Status())
+				t.Errorf("/server PATCH non-200: %s", resp.Status())
 			}
 		})
 	}

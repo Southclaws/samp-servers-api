@@ -35,7 +35,7 @@ func (v *V2) Routes() []types.Route {
 		{
 			Name:        "serverAdd",
 			Path:        "/server",
-			Method:      "POST",
+			Method:      "PATCH",
 			Description: `Add a server to the index using just the IP address. The address is specified via the form body. The address is added to an internal queue and will be queried periodically for information via the legacy server API. This allows any server to be added with the basic information provided by SA:MP itself.`,
 			Accepts:     nil,
 			Returns:     nil,
