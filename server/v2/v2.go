@@ -34,9 +34,9 @@ func (v *V2) Routes() []types.Route {
 	return []types.Route{
 		{
 			Name:        "serverAdd",
-			Path:        "/server/{address}",
+			Path:        "/server",
 			Method:      "POST",
-			Description: `Add a server to the index using just the IP address. This endpoint requires no body and no additional information. The IP address is added to an internal queue and will be queried periodically for information via the legacy server API. This allows any server to be added with the basic information provided by SA:MP itself.`,
+			Description: `Add a server to the index using just the IP address. The address is specified via the form body. The address is added to an internal queue and will be queried periodically for information via the legacy server API. This allows any server to be added with the basic information provided by SA:MP itself.`,
 			Accepts:     nil,
 			Returns:     nil,
 			Handler:     v.serverAdd,

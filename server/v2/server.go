@@ -14,8 +14,8 @@ import (
 // serverAdd handles "simple" posts where the only data is the server address which is passed to
 // the QueryDaemon which handles pulling the rest of the information from the legacy query API.
 func (v *V2) serverAdd(w http.ResponseWriter, r *http.Request) {
-	address, ok := mux.Vars(r)["address"]
-	if !ok {
+	address := r.FormValue("address")
+	if address == "" {
 		WriteError(w, http.StatusBadRequest, errors.New("no address specified"))
 	}
 
