@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+scrape_configs:
+  - job_name: samp-servers-api
+      scrape_interval: 30s
+      dns_sd_configs:
+        - names:
+            - "samp-servers-api"
+          type: "A"
+          port: 80
