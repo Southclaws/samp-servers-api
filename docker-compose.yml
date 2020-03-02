@@ -19,7 +19,7 @@ services:
     networks:
       - mongodb
 
-  samp-servers-api:
+  api:
     image: "southclaws/samp-servers-api:latest"
     restart: on-failure
     environment:
@@ -42,7 +42,7 @@ services:
     labels:
       traefik.enable: true
       traefik.docker.network: gateway
-      traefik.http.routers.samp-servers-api.rule: Host(`api.samp-servers.net`)
-      traefik.http.routers.samp-servers-api.entrypoints: https
-      traefik.http.routers.samp-servers-api.tls.certresolver: default
+      traefik.http.routers.samplist_api.rule: Host(`api.samp-servers.net`)
+      traefik.http.routers.samplist_api.entrypoints: https
+      traefik.http.routers.samplist_api.tls.certresolver: default
       com.centurylinklabs.watchtower.enable: true
