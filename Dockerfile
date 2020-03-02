@@ -17,4 +17,6 @@ FROM scratch
 COPY --from=compile /samp-servers-api/samp-servers-api /bin/samp-servers-api
 COPY --from=compile /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
+EXPOSE 80
+
 ENTRYPOINT ["samp-servers-api"]

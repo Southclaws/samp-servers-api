@@ -1,0 +1,48 @@
+version: "3.5"
+networks:
+  default:
+    external:
+      name: gateway
+  mongodb:
+    driver: bridge
+    internal: true
+
+services:
+  mongodb:
+    image: "mongo:3.4"
+    restart: on-failure
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGODB_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGODB_PASSWORD}"
+    volumes:
+      - "${DATA_DIR}/samplist/mongodb:/data/db"
+    networks:
+      - mongodb
+
+  samp-servers-api:
+    image: "southclaws/samp-servers-api:latest"
+    restart: on-failure
+    environment:
+      SAMPLIST_BIND: "0.0.0.0:80"
+      SAMPLIST_MONGO_USER: "${MONGODB_USERNAME}"
+      SAMPLIST_MONGO_PASS: "${MONGODB_PASSWORD}"
+      SAMPLIST_MONGO_HOST: mongodb
+      SAMPLIST_MONGO_PORT: "27017"
+      SAMPLIST_MONGO_NAME: admin
+      SAMPLIST_MONGO_COLLECTION: servers
+      SAMPLIST_QUERY_INTERVAL: "120s"
+      SAMPLIST_MAX_FAILED_QUERY: "10"
+      SAMPLIST_VERIFY_BY_HOST: "true"
+      SAMPLIST_LEGACY_LIST: "true"
+    networks:
+      - default
+      - mongodb
+    depends_on:
+      - mongodb
+    labels:
+      traefik.enable: true
+      traefik.docker.network: gateway
+      traefik.http.routers.portainer.rule: Host(`api.samp-servers.net`)
+      traefik.http.routers.portainer.entrypoints: https
+      traefik.http.routers.portainer.tls.certresolver: default
+      com.centurylinklabs.watchtower.enable: true
