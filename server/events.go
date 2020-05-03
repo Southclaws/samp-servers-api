@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/Southclaws/samp-servers-api/types"
+	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,7 @@ func (app *App) onRequestArchive(address string) {
 		return
 	}
 
-	app.updateIndexMetrics()
+	app.updateIndexMetrics(address)
 }
 
 func (app *App) onRequestRemove(address string) {
@@ -32,7 +33,7 @@ func (app *App) onRequestRemove(address string) {
 		return
 	}
 
-	app.updateIndexMetrics()
+	app.updateIndexMetrics(address)
 }
 
 func (app *App) onRequestUpdate(server types.Server) {
@@ -47,10 +48,10 @@ func (app *App) onRequestUpdate(server types.Server) {
 		return
 	}
 
-	app.updateIndexMetrics()
+	app.updateIndexMetrics(server.Core.Address)
 }
 
-func (app *App) updateIndexMetrics() {
+func (app *App) updateIndexMetrics(address string) {
 	c, err := app.db.GetActiveServers()
 	if err != nil {
 		logger.Error("failed to get active servers metric",
@@ -70,5 +71,5 @@ func (app *App) updateIndexMetrics() {
 		logger.Error("failed to get total players metric",
 			zap.Error(err))
 	}
-	app.metrics.Players.Set(float64(c))
+	app.metrics.Players.With(prometheus.Labels{"addr": address}).Set(float64(c))
 }

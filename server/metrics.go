@@ -6,7 +6,7 @@ import "github.com/prometheus/client_golang/prometheus"
 type metrics struct {
 	Active   prometheus.Gauge
 	Inactive prometheus.Gauge
-	Players  prometheus.Gauge
+	Players  *prometheus.GaugeVec
 }
 
 // newMetricsRecorder initialises a new metrics recorder
@@ -24,12 +24,12 @@ func newMetricsRecorder() (m *metrics) {
 			Name:      "inactive",
 			Help:      "Total servers that are offline but being given a grace-period to come back online.",
 		}),
-		Players: prometheus.NewGauge(prometheus.GaugeOpts{
+		Players: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "samplist",
 			Subsystem: "index",
 			Name:      "players",
 			Help:      "Total players across all servers",
-		}),
+		}, []string{"addr"}),
 	}
 	prometheus.MustRegister(
 		m.Active,
