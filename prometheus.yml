@@ -6,6 +6,6 @@ scrape_configs:
     scrape_interval: 5s
     dns_sd_configs:
       - names:
-          - "samp-servers-api"
+          - api
         type: "A"
         port: 80
