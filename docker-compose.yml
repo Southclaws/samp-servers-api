@@ -46,3 +46,24 @@ services:
       traefik.http.routers.samplist_api.entrypoints: https
       traefik.http.routers.samplist_api.tls.certresolver: default
       com.centurylinklabs.watchtower.enable: true
+
+  prometheus:
+    image: "prom/prometheus"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+    restart: always
+    volumes:
+      - ${DATA_DIR}/samplist/prometheus:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - default
+    labels:
+      traefik.enable: true
+      traefik.docker.network: gateway
+      traefik.http.routers.samplist_prom.rule: Host(`data.samp-servers.net`)
+      traefik.http.routers.samplist_prom.entrypoints: https
+      traefik.http.routers.samplist_prom.tls.certresolver: default
+      com.centurylinklabs.watchtower.enable: true
