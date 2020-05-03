@@ -9,7 +9,7 @@ networks:
 
 services:
   mongodb:
-    image: "mongo:3.4"
+    image: "mongo:3"
     restart: on-failure
     environment:
       MONGO_INITDB_ROOT_USERNAME: "${MONGODB_USERNAME}"
