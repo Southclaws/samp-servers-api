@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"context"
+	"net"
 	"time"
 
 	"github.com/Southclaws/go-samp-query"
@@ -144,7 +145,20 @@ func (daemon *Scraper) query(address string) (remove bool, err error) {
 	}
 	daemon.removeFailed(address)
 
+	var ip string
+	addrs, err := net.LookupHost(serverData.Address)
+	if err != nil {
+		err = nil
+	}
+	if len(addrs) > 0 {
+		ip = addrs[0]
+	}
+	if ip == "" {
+		ip = serverData.Address
+	}
+
 	server := types.Server{
+		IP: ip,
 		Core: types.ServerCore{
 			Address:    serverData.Address,
 			Hostname:   serverData.Hostname,
